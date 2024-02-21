@@ -117,6 +117,39 @@ class FinnkodeScraper:
     def close(self):
         self.driver.close()
 
+def insert_car(conn, finnkode, car_name, link, price, pictures=None):
+    sql = 'INSERT INTO Car(Finnkode, car_name, Link, Price, Pictures) VALUES(?,?,?,?,?)'
+    cur = conn.cursor()
+    cur.execute(sql, (finnkode, car_name, link, price, pictures))
+    conn.commit()
+
+def insert_description(conn, finnkode, description):
+    sql = 'INSERT INTO Beskrivelse(Finnkode, Description_Text) VALUES(?,?)'
+    cur = conn.cursor()
+    cur.execute(sql, (finnkode, description))
+    conn.commit()
+
+def insert_specifications(conn, finnkode, specifications):
+    sql = 'INSERT INTO Spesifikasjoner(Finnkode, Specifications) VALUES(?,?)'
+    specifications_json = json.dumps(specifications)
+    cur = conn.cursor()
+    cur.execute(sql, (finnkode, specifications_json))
+    conn.commit()
+
+def insert_equipment(conn, finnkode, equipment_list):
+    sql = 'INSERT INTO Utstyr(Finnkode, Equipment) VALUES(?,?)'
+    equipment_json = json.dumps(equipment_list)
+    cur = conn.cursor()
+    cur.execute(sql, (finnkode, equipment_json))
+    conn.commit()
+
+def element_exists(cursor, table, field, data):
+    query = f"SELECT 1 FROM {table} WHERE {field} = ?"
+    cursor.execute(query, (data,))
+    result = cursor.fetchone()
+    return result is not None
+
+
 if __name__ == "__main__":
     # Example URL
     car_url = "https://www.finn.no/car/used/ad.html?finnkode=340869847"

@@ -1,0 +1,11 @@
+Id,Merke,Modellår,Kilometer,Girkasse,Drivstoff,Seter,Eiere,Hjuldrift,Farge,SalePrice
+1,Toyota,2014,114251,Automat,Hybrid,7,2,Forhjulsdrift,Grå,178000
+2,Mercedes,1997,147000,Manuell,Diesel,5,1,Forhjulsdrift,Hvit,69000
+3,Nissan,2022,2671,Automat,Elektrisitet,5,1,Forhjulsdrift,Svart,269900
+4,Volvo,2022,43979,Automat,Elektrisitet,5,2,Firehjulsdrift,Blå,499000
+5,SmartRoadster,2004,110000,Automat,Bensin,2,16,Bakhjulsdrift,Gull,46777
+6,Tesla,2016,124000,Automat,Elektrisitet,7,1,Firehjulsdrift,Svart,319000
+7,Mercedes,2018,44700,Automat,Diesel,2,1,Firehjulsdrift,Hvit,990000
+8,Volvo,2006,260000,Manuell,Diesel,5,1,Forhjulsdrift,Sølv,16845
+9,Volkswagen,2006,411000,Manuell,Diesel,2,1,Forhjulsdrift,Sølv,9000
+10,Hyundai,2013,133850,Manuell,Bensin,5,2,Forhjulsdrift,Grå,99000

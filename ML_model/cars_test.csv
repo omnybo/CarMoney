@@ -1,0 +1,6 @@
+Id,Merke,Modellår,Kilometer,Girkasse,Drivstoff,Seter,Eiere,Hjuldrift,Farge
+11,Subaru,2019,67000,Automat,Bensin,5,1,Firehjulsdrift,Svart
+12,Tesla,2023,7800,Automat,Elektrisitet,5,1,Firehjulsdrift,Hvit
+13,Renault,2018,129000,Automat,Elektrisitet,5,2,Forhjulsdrift,Hvit
+14,Volkswagen,2006,214000,Automat,Diesel,5,3,Forhjulsdrift,Svart
+15,Porsche,2021,26500,Automat,Elektrisitet,4,1,Firehjulsdrift,Grønn

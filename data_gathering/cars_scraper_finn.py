@@ -51,7 +51,7 @@ class FinnkodeScraper:
             print(f"Finnkode: {finnkode}, Link:{href}")
             data.append((finnkode, href))
         return data
-    
+    '''
     def extract_description(self):
         # Navigate to the provided URL
         self.driver.get(self.url)
@@ -67,6 +67,7 @@ class FinnkodeScraper:
             description = "Description could not be extracted."
 
         return description
+    '''
     def extract_car_specs(self):
         self.driver.get(self.url)
         try:
@@ -123,6 +124,11 @@ class FinnkodeScraper:
             price = self.driver.execute_script('return arguments[0].textContent;', price_section)
             #exclude chars (kr)
             numeric_price = re.sub("[^\d]", "", price)  # This removes all non-digit charactersprint("Extracted Numeric Price:", numeric_price)
+        
+        except NoSuchElementException:
+        # Element not found, set numeric_price to None
+            print("Price element not found, skipping...")
+        
         except Exception as e:
             print(f"An error occurred while trying to extract the price: {e}")
             numeric_price = None
@@ -190,58 +196,63 @@ def element_exists(cursor, table, field, data):
       
 if __name__ == "__main__":
     
-    #---Extracting information of one page----
-    search_url = "https://www.finn.no/car/used/search.html"
-    scraper = FinnkodeScraper(search_url)
+    links = []
     database = "../data_gathering/cars.db"
-    
-    links = scraper.get_finnkodes_and_links()[:5]  # Adjust to fetch only the first 10 links
-    print(links)
-    
-    print(links[0])
-    code = []
-    
-    for finnkode, link in links:
-        connection = sqlite3.connect(database)
-        cursor = connection.cursor()
-        if element_exists(cursor, 'Car', 'Finnkode',finnkode):
-            print("Element exists")
-            
-        else:
-            try:
-                print(f"Adding Car with finnkode: {finnkode} ")
-                
-                
-                car_scraper = FinnkodeScraper(link)
-                finncode = car_scraper.extract_finnkode()
-                car_scraper.driver.get(link)
-                #page_html = car_scraper.driver.find_element(By.TAG_NAME, 'body').get_attribute('outerHTML')
-                #print("DEBUG: Page HTML:", page_html)
-                price = car_scraper.extract_price()
-                print(f"pris{price}")
-                
-                if price is None:
-                    continue
-                description = car_scraper.extract_description()
-                
-                equipment_list = car_scraper.extract_equipment()
-                specifications = car_scraper.extract_car_specs()
-                
-                car_name = car_scraper.extract_model_name()
-                
-                car_scraper.close()
-                
-                with connection:
-                    insert_car(connection, finncode, car_name, link, price)
-                    insert_description(connection, finncode, description)
-                    insert_specifications(connection, finncode, specifications)
-                    #print(car_info['specifications'])
-                    insert_equipment(connection, finncode, equipment_list)
-                print(f"Added Finnkode: {finncode}, Link: {link}, Price: {price}")
-            except Exception as e:
-                print(f"An error occurred while scraping {finncode}: {e}")
+    connection = sqlite3.connect(database)
+    counter = 0
+    change = 5000
+    for x in range(0,1500000,change):
+        for i in range(50):
+            URL = "https://www.finn.no/car/used/search.html?page="+str(i+1)+"&price_from="+str(x+1)+"&price_to="+str(x+change)+"&sales_form=1&sort=PUBLISHED_DESC"
+            print('Scraping page:')
+        
+            scraper = FinnkodeScraper(URL)
+            data = scraper.get_finnkodes_and_links()
 
-            # Wait for the page to load
-        time.sleep(10)
+            if not data or len(data) <=1:
+                break
+            scraper.close()
+        
+            links.extend(data)
+            for finnkode, link in links:
+                cursor = connection.cursor()
+                if element_exists(cursor, 'Car', 'Finnkode',finnkode):
+                    print("Element exists")
+                    
+                else:
+                    try:
+                        print(f"Adding Car with finnkode: {finnkode} ")
+                        
+                        car_scraper = FinnkodeScraper(link)
+                        finncode = car_scraper.extract_finnkode()
+                        car_scraper.driver.get(link)
+                        #page_html = car_scraper.driver.find_element(By.TAG_NAME, 'body').get_attribute('outerHTML')
+                        #print("DEBUG: Page HTML:", page_html)
+                        price = car_scraper.extract_price()
+                        print(f"pris{price}")
+                        
+                        if price is None:
+                            continue
+                        #description = car_scraper.extract_description()
+                        
+                        equipment_list = car_scraper.extract_equipment()
+                        specifications = car_scraper.extract_car_specs()
+                        car_name = car_scraper.extract_model_name()
+                        car_scraper.close()
+                        
+                        with connection:
+                            insert_car(connection, finncode, car_name, link, price)
+                            #insert_description(connection, finncode, description)
+                            insert_specifications(connection, finncode, specifications)
+                            #print(car_info['specifications'])
+                            insert_equipment(connection, finncode, equipment_list)
+                        print(f"Added Finnkode: {finncode}, Link: {link}, Price: {price}")
+                    except Exception as e:
+                        print(f"An error occurred while scraping {finncode}: {e}")
+
+                    # Wait for the page to load
+            time.sleep(10)
     print(len(links), "Cars added.")
-                 
+        
+        
+   

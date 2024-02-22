@@ -37,7 +37,7 @@ def get_combined_data():
 
     combined = train.append(test)
     combined.reset_index(inplace=True)
-    combined.drop(['index', 'Id'], inplace=True, axis=1)
+    combined.drop(['index', 'Id', 'Finnkode'], inplace=True, axis=1)
     #print(combined)
 
     return combined, target
@@ -112,8 +112,8 @@ print('There are {} columns after encoding categorical features'.format(combined
 
 def split_combined():
     global combined
-    train = combined[:10] # Need to change after final data
-    test = combined[10:]
+    train = combined[:70] # Need to change after final data
+    test = combined[70:]
 
     return train, test
 
@@ -143,7 +143,7 @@ checkpoint = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=1, sav
 callbacks_list = [checkpoint]
 
 # Train DNN
-history = NN_model.fit(train, target, epochs=500, batch_size=16, validation_split=0.20, callbacks=callbacks_list)
+history = NN_model.fit(train, target, epochs=200, batch_size=16, validation_split=0.20, callbacks=callbacks_list)
 
 # Find the best checkpoint
 best_epoch = history.history['val_loss'].index(min(history.history['val_loss']))

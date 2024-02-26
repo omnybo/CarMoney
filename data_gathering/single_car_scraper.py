@@ -11,7 +11,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+''' 
+    price = scraper.driver.execute_script('return arguments[0].textContent;', price_section)
+    #exclude chars (kr)
+    numeric_price = re.sub("[^\d]", "", price)  # This removes all non-digit charactersprint("Extracted Numeric Price:", numeric_price)
 
+    '''
 class FinnkodeScraper:
     def __init__(self, url):
         self.url = url
@@ -41,18 +46,52 @@ class FinnkodeScraper:
 
         return description
     def extract_price(self):
+        numeric_price = None
         try:
-            price_section = scraper.driver.find_element(By.CSS_SELECTOR, "section.panel.u-mt32:not(.import-decoration) .flex-wrapper .flex-wrapper__unit .u-t3")
-            print("DEBUG: Price element HTML:", price_section.get_attribute('outerHTML'))  # This will print the HTML of the price element
-            price = scraper.driver.execute_script('return arguments[0].textContent;', price_section)
-            #exclude chars (kr)
-            numeric_price = re.sub("[^\d]", "", price)  # This removes all non-digit charactersprint("Extracted Numeric Price:", numeric_price)
+            # Wait for the price element to be present before attempting to extract text
+            price_section = WebDriverWait(self.driver, 15).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "span.u-t3"))
+            )
+            price_text = price_section.get_attribute('textContent').strip()
+            numeric_price = re.sub("[^\d]", "", price_text)  # This removes all non-digit characters
+            
+        except TimeoutException:
+            print("Timed out waiting for the price element to appear.")
+        except NoSuchElementException:
+            print("Price element not found on the page.")
         except Exception as e:
             print(f"An error occurred while trying to extract the price: {e}")
-
+            
+        return numeric_price
+    
+    def extract_smidig_bilhandel(self):
+        numeric_price = None
+        try:
+            # First, find the shadow host element
+            shadow_host = WebDriverWait(self.driver, 15).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "tjm-ad-entry"))
+            )
+            
+            # Then, use JavaScript to get the shadow root from the host
+            shadow_root = self.driver.execute_script('return arguments[0].shadowRoot', shadow_host)
+            
+            # Now find the price element within the shadow root
+            price_element = shadow_root.find_element(By.CSS_SELECTOR, "h2[data-testid='price']")
+            price_text = price_element.get_attribute('textContent').strip()
+            
+            # Extract the numeric part of the price
+            numeric_price = re.sub("[^\d]", "", price_text)
+            
+        except TimeoutException:
+            print("Timed out waiting for the price element to appear.")
+        except NoSuchElementException:
+            print("Price element not found on the page.")
+        except Exception as e:
+            print(f"An error occurred while trying to extract the price: {e}")
+        
         return numeric_price
 
-           
+
     def extract_car_specs(self):
         self.driver.get(self.url)
         try:
@@ -114,6 +153,32 @@ class FinnkodeScraper:
 
         return model_name
     
+    def extract_specs_list(self):
+        try:
+        # Use find_elements to get a list of all matching elements
+            
+            
+            specs = {}
+            label_elements = self.driver.find_elements(By.CSS_SELECTOR, "section.panel.u-mt32 .list-descriptive.u-col-count2.u-col-count3from990 dt")
+            value_elements = self.driver.find_elements(By.CSS_SELECTOR, "section.panel.u-mt32 .list-descriptive.u-col-count2.u-col-count3from990 dd")
+
+            for label_element, value_element in zip(label_elements, value_elements):
+                # Use JavaScript to retrieve text content, which may include handling special characters like non-breaking spaces
+                label_text = label_element.get_attribute("textContent").strip()
+                #label_text = label_element.text.strip()
+                #value_text = self.driver.execute_script("return arguments[0].textContent;", value_element).strip()
+                value_text = value_element.get_attribute("textContent").strip()
+
+                # Replace non-breaking spaces and standardize spacing, if necessary
+                value_text = value_text.replace('\xa0', ' ').replace('\n','').strip()
+                cleaned_text = re.sub(r'\s+', ' ', value_text).strip()
+                # Store the label and its corresponding value in the specs dictionary
+                specs[label_text] = cleaned_text
+            return specs
+        except Exception as e:
+            print(f"An error occurred while extracting car specs: {e}")
+            return {}
+        
     def close(self):
         self.driver.close()
 
@@ -149,26 +214,90 @@ def element_exists(cursor, table, field, data):
     result = cursor.fetchone()
     return result is not None
 
+def extract_smidig_bilhandel(scraper, url):
+    numeric_price = None
+    try:
+        # First, find the shadow host element
+        shadow_host = WebDriverWait(scraper.driver, 15).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "tjm-ad-entry")))
+
+        # Then, use JavaScript to get the shadow root from the host
+        shadow_root = scraper.driver.execute_script('return arguments[0].shadowRoot', shadow_host)
+
+        # Now find the price element within the shadow root
+        price_element = shadow_root.find_element(By.CSS_SELECTOR, "h2[data-testid='price']")
+        price_text = price_element.get_attribute('textContent').strip()
+
+        # Extract the numeric part of the price
+        numeric_price = re.sub("[^\d]", "", price_text)
+
+    except TimeoutException:
+        print("Timed out waiting for the price element to appear.")
+    except NoSuchElementException:
+        print("Price element not found on the page.")
+    except Exception as e:
+        print(f"An error occurred while trying to extract the price: {e}")
+
+    return numeric_price
 
 if __name__ == "__main__":
     # Example URL
-    car_url = "https://www.finn.no/car/used/ad.html?finnkode=340869847"
+    car_url = "https://www.finn.no/car/used/ad.html?finnkode=341308515"
     
     # Create an instance of the scraper
     scraper = FinnkodeScraper(car_url)
     
-    # Extract and print information
     finnkode = scraper.extract_finnkode()
+    # Extract and print information
+    
     description = scraper.extract_description()
-    numeric_price = scraper.extract_price()
+    numeric_price = scraper.extract_smidig_bilhandel()
+    
+    
+    
     name = scraper.extract_model_name()
     specs = scraper.extract_car_specs()
+    specs_list = scraper.extract_specs_list()
     
-    #print(specs, "\n",name, "\n pris:",numeric_price,  "\n finnkode:" ,finnkode, "\n Description", description)
+    if numeric_price is None:
+        print("Failed to extract price")
+        numeric_price = scraper.extract_price()
+        
+    print(specs, "\n",name, "\n pris:",numeric_price,  "\n finnkode:" ,finnkode, "\n Description", description)
     
-    equipment_list = scraper.extract_equipment()
-    print(f"---- Car Info ---- \n Name: {name} \n Pris: {numeric_price} \n Spesifikasjoner: {specs} \n Utstyr: {equipment_list} \n Beskrivelse: {description}")
-    
+    #equipment_list = scraper.extract_equipment()
+    #print(f"---- Car Info ---- \n Name: {name} \n Spesifikasjoner: {specs_list}, Price:{numeric_price}\n Description:\n{description}")
+    #print('pris: {numeric_price}')
     # Close the browser after scraping is done
     
     scraper.close()
+
+'''    
+    def extract_price(self):
+        numeric_price = None
+        try:
+            #price_section = scraper.driver.find_element(By.CSS_SELECTOR, "section.panel.u-mt32:not(.import-decoration) .flex-wrapper .flex-wrapper__unit .u-t3")
+            price_section = scraper.driver.find_element(By.CSS_SELECTOR, "section.panel.u-mt32:not(.import-decoration) .flex-wrapper .flex-wrapper__unit")
+            numeric_price = 'pris:'
+            print("DEBUG: Price element HTML:", price_section.get_attribute('outerHTML'))  # This will print the HTML of the price element
+            price = scraper.driver.execute_script('return arguments[0].textContent;', price_section)
+            #exclude chars (kr)
+            numeric_price = re.sub("[^\d]", "", price) 
+        except Exception as e:
+            print(f"An error occurred while trying to extract the price: {e}")
+            
+        return numeric_price
+
+    def extract(self):
+        num_price = None
+        try:
+            price_section = self.driver.find_element(By.CSS_SELECTOR,"section.panel.u-mb0 [data-testid='price']")
+            print("DEBUG: Price element HTML:", price_section.get_attribute('outerHTML'))  # This will print the HTML of the price element
+            price = self.driver.execute_script('return arguments[0].textContent;', price_section)
+            #exclude chars (kr)
+            num_price = re.sub("[^\d]", "", price)  # This removes all non-digit charactersprint("Extracted Numeric Price:", numeric_price)
+        except Exception as e:
+            print(f"An error occurred while trying to extract the price: {e}")
+
+        return num_price
+    '''          

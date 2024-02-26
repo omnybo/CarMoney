@@ -19,18 +19,15 @@ class FinnkodeScraper:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--headless")
-        
-        options.add_experimental_option('excludeSwitches', ['enable-logging'])  # This suppresses the 'DevTools listening on...' message.
-        
-        # On Unix-like systems, use '/dev/null'. For Windows, use 'NUL'.
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
         sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
         
         self.driver = webdriver.Chrome(options=options)
     def get_finnkodes_and_links(self):
         data = []
-        # Navigate to the provided URL
+        #Navigate to the provided URL
         self.driver.get(self.url)
-        # Wait for <article> elements with specific XPath to appear
+        # Wait for <article> elements based on XPATH
         try:
             articles = WebDriverWait(self.driver, 10).until(
                 EC.presence_of_all_elements_located((By.XPATH, "//article[contains(@class, 'sf-search-ad')]"))
@@ -39,9 +36,9 @@ class FinnkodeScraper:
             print("The articles were not found within the given time frame.")
             return data
 
-        # Wait for the page to load
+        #Wait for the page to load
         time.sleep(3)
-        # Extract data: finnkode, link
+        # Extract data: link and finnkode
         articles = self.driver.find_elements(By.XPATH, "//article[contains(@class, 'sf-search-ad')]")
         for article in articles:
             link_element = article.find_element(By.XPATH, ".//a[contains(@href, 'finnkode=')]")
@@ -53,9 +50,9 @@ class FinnkodeScraper:
         return data
     
     def extract_description(self):
-        # Navigate to the provided URL
+        #Navigate to the provided URL
         self.driver.get(self.url)
-        time.sleep(2)  # Ensure all elements are loaded, might require fine-tuning
+        time.sleep(2)
 
         try:
             # Find the section with 'Beskrivelse' and extract the following sibling <p>'s innerHTML
@@ -78,16 +75,17 @@ class FinnkodeScraper:
             labels = []
             values = []
             for element in elements:
-                # Assuming each media__body contains exactly one label (non-strong text) and one value (strong text)
+                #Extract Specifications Label
                 label_elements = element.find_elements(By.CSS_SELECTOR, "div:not(.u-strong)")
+                #Extract  Specification Value
                 value_elements = element.find_elements(By.CSS_SELECTOR, "div.u-strong")
                 
                 for label_element, value_element in zip(label_elements, value_elements):
-                    # Use JavaScript to retrieve text content, which may include handling special characters like non-breaking spaces
+                    #Extract text content from each element
                     label_text = self.driver.execute_script("return arguments[0].textContent;", label_element).strip()
                     value_text = self.driver.execute_script("return arguments[0].textContent;", value_element).strip()
 
-                    # Replace non-breaking spaces and standardize spacing, if necessary
+                    #Replace non-breaking spaces, excessive whitespaces and extract actual value
                     value_text = value_text.replace('\xa0', ' ')
 
                     # Store the label and its corresponding value in the specs dictionary
@@ -96,18 +94,19 @@ class FinnkodeScraper:
         except Exception as e:
             print(f"An error occurred while extracting car specs: {e}")
             return {}
-
     
     def extract_equipment(self):
         self.driver.get(self.url)
         equipment_list = []  # Initialize an empty list to hold the equipment items' HTML
         try:
-            # Use find_elements to get a list of all matching elements
+            # Use find_elements to get a list of elements matching the specified CSS selector
             elements = self.driver.find_elements(By.CSS_SELECTOR, "section.panel.u-mt32:not(.import-decoration) .list.u-col-count2.u-col-count3from990 li")
 
             for element in elements:
                 equipment_html = element.get_attribute('innerHTML')
                 equipment_list.append(equipment_html)
+                #Debug equipment HTML
+                #equipment_html = element.get_attribute('innerHTML')
                 #print("DEBUG: Equipment HTML:", equipment_html)  # This will print the HTML of each equipment item
 
         except Exception as e:
@@ -115,53 +114,51 @@ class FinnkodeScraper:
         
         return equipment_list
     
-    #Tar ikke alltid inn pris, legge til condition for månedspris
     def extract_price(self):
          
         numeric_price = None
         try:
+            #locate price element using class name
             price_section = self.driver.find_element(By.CSS_SELECTOR, "section.panel.u-mt32:not(.import-decoration) .flex-wrapper .flex-wrapper__unit .u-t3")
             #print("DEBUG: Price element HTML:", price_section.get_attribute('outerHTML'))  # This will print the HTML of the price element
+            #Retrieve innerHTML (which includes both currency symbol) and parse it into float
             price = self.driver.execute_script('return arguments[0].textContent;', price_section)
             #exclude chars (kr)
             numeric_price = re.sub("[^\d]", "", price)  # This removes all non-digit charactersprint("Extracted Numeric Price:", numeric_price)
         
         except NoSuchElementException:
-        # Element not found, set numeric_price to None
+        #Element not found, set numeric_price to None
             print("Price element not found, skipping...")
         
         except Exception as e:
             print(f"An error occurred while trying to extract the price: {e}")
             numeric_price = None
-            '''  
-            price_section = self.driver.find_element(By.CSS_SELECTOR, "section.panel.u-mt32:not(.import-decoration) .flex-wrapper .flex-wrapper__unit .u-t3")
-            print("DEBUG: Price element HTML:", price_section.get_attribute('outerHTML'))  # This will print the HTML of the price element
-            price = self.driver.execute_script('return arguments[0].textContent;', price_section)
-            #exclude chars (kr)
-            numeric_price = re.sub("[^\d]", "", price)
-            '''   
+              
         return numeric_price
-    #problemer i enkelte tilfeller
     def extract_model_name(self):
         try:
-        # Find the h1 tag which we're assuming contains the model name
-            model_name_element = self.driver.find_element(By.TAG_NAME, 'h1')
-            print("DEBUG: Model name element HTML:", model_name_element.get_attribute('outerHTML'))  # Debugging
+        # Find the h1 tag which we're assuming contains the car name
+            car_name_element = self.driver.find_element(By.TAG_NAME, 'h1')
+            #print("DEBUG: Model name element HTML:", car_name.get_attribute('outerHTML'))  # Debugging
 
-            # Execute JavaScript to return the text content of the model name element
-            model_name = self.driver.execute_script('return arguments[0].textContent;', model_name_element)
-            model_name = model_name.strip()  # Remove any extra whitespace from the text
+            #Execute JavaScript to return the text content of the car name element
+            car_name = self.driver.execute_script('return arguments[0].textContent;', car_name_element)
+            car_name = car_name.strip()  #Remove any extra whitespace from the text
         except Exception as e:
             print(f"An error occurred while extracting the model name: {e}")
-            model_name = "Model name could not be extracted."
+            car_name = "Model name could not be extracted."
 
-        return model_name
+        return car_name
     
-    def extract_price_from_shadow_dom(self):
+    def extract_price_from_smidig_bilhandel(self):
+        #Smidig bilhandel price element located in a shadow DOM, using Java Sript execution
+        #to access the inner HTML of the element
         try:
             shadow_host = self.driver.find_element(By.CSS_SELECTOR, "tjm-ad-entry")
             shadow_root = self.driver.execute_script('return arguments[0].shadowRoot', shadow_host)
             price_element = shadow_root.find_element(By.CSS_SELECTOR, "h2[data-testid='price']")
+            
+            #
             price_text = price_element.get_attribute("textContent").strip()
             price = re.sub(r"[^\d]", "", price_text)
             return price
@@ -177,11 +174,11 @@ class FinnkodeScraper:
 
             specs = {}
             for label_element, value_element in zip(label_elements, value_elements):
-                # Use JavaScript to retrieve text content, which may include handling special characters like non-breaking spaces
+                
                 label_text = label_element.get_attribute("textContent").strip()
                 value_text = value_element.get_attribute("textContent").strip()
 
-                # Replace non-breaking spaces and standardize spacing, if necessary
+                #Replace non-breaking spaces and standardize spacing, if necessary
                 value_text = value_text.replace('\xa0', ' ').replace('\n','').strip()
                 cleaned_text = re.sub(r'\s+', ' ', value_text).strip()
                 # Store the label and its corresponding value in the specs dictionary
@@ -241,8 +238,7 @@ def merge_dicts(dict1,dict2):
         if key not in merged or merged[key] != value:
             merged[key] = value
     return merged
-
-      
+     
 if __name__ == "__main__":
     database = "../data_gathering/cars_database.db"
     try:
@@ -254,11 +250,16 @@ if __name__ == "__main__":
     links = []
     connection = sqlite3.connect(database)
     counter = 0
-    change = 5000
-    
-    for x in range(0,1500000,change):
+    change = 1
+    #extract based on price and published:
+    #for x in range(50000,1500000,change):
+        #for i in range(50):
+        #URL = "https://www.finn.no/car/used/search.html?page="+str(i+1)+"&price_from="+str(x+1)+"&price_to="+str(x+change)+"&sales_form=1&sort=PUBLISHED_DESC"
+
+    for x in range(2017,3000,change):
         for i in range(50):
-            URL = "https://www.finn.no/car/used/search.html?page="+str(i+1)+"&price_from="+str(x+1)+"&price_to="+str(x+change)+"&sales_form=1&sort=PUBLISHED_DESC"
+            #extract based on year:
+            URL = "https://www.finn.no/car/used/search.html?page="+str(i+1)+"&sales_form=1&sort=PUBLISHED_DESC"+"&year_from="+str(x+1)+"&year_to="+str(x+change)
             print('Scraping page:')
         
             scraper = FinnkodeScraper(URL)
@@ -285,7 +286,7 @@ if __name__ == "__main__":
                         price = car_scraper.extract_price()
                             
                         if not price:
-                            price = car_scraper.extract_price_from_shadow_dom()
+                            price = car_scraper.extract_price_from_smidig_bilhandel()
                         specifications = car_scraper.extract_car_specs()
                         car_name = car_scraper.extract_model_name()
                         car_specs_list = car_scraper.extract_specs_list()

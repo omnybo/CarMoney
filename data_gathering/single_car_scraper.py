@@ -258,12 +258,13 @@ if __name__ == "__main__":
     name = scraper.extract_model_name()
     specs = scraper.extract_car_specs()
     specs_list = scraper.extract_specs_list()
+    equips = scraper.extract_equipment()
     
     if numeric_price is None:
         print("Failed to extract price")
         numeric_price = scraper.extract_price()
         
-    print(specs, "\n",name, "\n pris:",numeric_price,  "\n finnkode:" ,finnkode, "\n Description", description)
+    print(equips, "\n",name, "\n pris:",numeric_price,  "\n finnkode:" ,finnkode, "\n Description", description)
     
     #equipment_list = scraper.extract_equipment()
     #print(f"---- Car Info ---- \n Name: {name} \n Spesifikasjoner: {specs_list}, Price:{numeric_price}\n Description:\n{description}")

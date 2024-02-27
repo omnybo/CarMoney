@@ -247,6 +247,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Failed to connect to the database: {e}")
         sys.exit(1) 
+        
     links = []
     connection = sqlite3.connect(database)
     counter = 0

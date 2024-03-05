@@ -13,17 +13,16 @@ import xgboost
 import warnings
 warnings.filterwarnings('ignore')
 warnings.filterwarnings('ignore', category=DeprecationWarning)
-from keras.layers import Dropout
 import shap
 
 
 def get_data():
     # get train data
-    train_data_path = 'cars_spez_train.csv'
+    train_data_path = 'cars_2000_train.csv'
     train = pd.read_csv(train_data_path)
 
     # get test data
-    test_data_path = 'cars_spez_test.csv'
+    test_data_path = 'cars_2000_test.csv'
     test = pd.read_csv(test_data_path)
 
     return train, test
@@ -37,7 +36,7 @@ def get_combined_data():
 
     combined = train.append(test)
     combined.reset_index(inplace=True)
-    combined.drop(['index', 'Id', 'Finnkode', 'Sylindervolum'], inplace=True, axis=1)
+    combined.drop(['index', 'Id', 'Finnkode'], inplace=True, axis=1)
     print(combined)
 
     return combined, target
@@ -112,8 +111,8 @@ print('There are {} columns after encoding categorical features'.format(combined
 
 def split_combined():
     global combined
-    train = combined[:1174] # Need to change after final data
-    test = combined[1174:]
+    train = combined[:1800] # Need to change after final data
+    test = combined[1800:]
 
     return train, test
 
@@ -140,7 +139,7 @@ checkpoint = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=1, sav
 callbacks_list = [checkpoint]
 
 # Train DNN
-history = NN_model.fit(train, target, epochs=500, batch_size=32, validation_split=0.20, callbacks=callbacks_list)
+history = NN_model.fit(train, target, epochs=100, batch_size=16, validation_split=0.20, callbacks=callbacks_list)
 
 # Find the best checkpoint
 best_epoch = history.history['val_loss'].index(min(history.history['val_loss']))
@@ -152,12 +151,11 @@ NN_model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['mean_ab
 
 # Predict using the trained model
 predictions = NN_model.predict(test)
-print(predictions)
-
+#print(predictions)
 
 
 def make_submission(prediction, sub_name):
-  my_submission = pd.DataFrame({'Id':pd.read_csv('cars_spez_test.csv').Id,'SalePrice':prediction})
+  my_submission = pd.DataFrame({'Id':pd.read_csv('cars_2000_test.csv').Id,'SalePrice':prediction})
   my_submission.to_csv('{}.csv'.format(sub_name),index=False)
   print('A submission file has been made')
 
@@ -165,12 +163,13 @@ make_submission(predictions[:,0],'cars_NN')
 
 
 # Use shap on NN model
-samples = shap.sample(train, 200)
+samples = shap.sample(train, 100)
 explainer = shap.KernelExplainer(NN_model.predict, samples)
 shap_values = explainer.shap_values(test,nsamples=100)
+shap.summary_plot(shap_values[0],test, title='NNModel')
+
 
 #shap.summary_plot(shap_values,test)
-shap.summary_plot(shap_values[0],test, title='NNModel')
 
 #shap.initjs()
 #shap.force_plot(explainer.expected_value, shap_values[0,:]  ,test[0,:])

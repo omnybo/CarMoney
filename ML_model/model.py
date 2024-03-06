@@ -19,11 +19,11 @@ import shap
 
 def get_data():
     # get train data
-    train_data_path = 'cars_6000_train.csv'
+    train_data_path = 'cars_data/cars_6000_train.csv'
     train = pd.read_csv(train_data_path)
 
     # get test data
-    test_data_path = 'cars_6000_test.csv'
+    test_data_path = 'cars_data/cars_6000_test.csv'
     test = pd.read_csv(test_data_path)
 
     return train, test
@@ -156,7 +156,7 @@ predictions = NN_model.predict(test)
 
 
 def make_submission(prediction, sub_name):
-  my_submission = pd.DataFrame({'Id':pd.read_csv('cars_6000_test.csv').Id,'SalePrice':prediction})
+  my_submission = pd.DataFrame({'Id':pd.read_csv('cars_data/cars_6000_test.csv').Id,'SalePrice':prediction})
   my_submission.to_csv('{}.csv'.format(sub_name),index=False)
   print('A submission file has been made')
 

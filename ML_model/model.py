@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from matplotlib import pyplot as plt
+from scipy.special import softmax
 import seaborn as sb
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -18,11 +19,11 @@ import shap
 
 def get_data():
     # get train data
-    train_data_path = 'cars_2000_train.csv'
+    train_data_path = 'cars_6000_train.csv'
     train = pd.read_csv(train_data_path)
 
     # get test data
-    test_data_path = 'cars_2000_test.csv'
+    test_data_path = 'cars_6000_test.csv'
     test = pd.read_csv(test_data_path)
 
     return train, test
@@ -111,8 +112,8 @@ print('There are {} columns after encoding categorical features'.format(combined
 
 def split_combined():
     global combined
-    train = combined[:1800] # Need to change after final data
-    test = combined[1800:]
+    train = combined[:5850] # Need to change after final data
+    test = combined[5850:]
 
     return train, test
 
@@ -155,11 +156,12 @@ predictions = NN_model.predict(test)
 
 
 def make_submission(prediction, sub_name):
-  my_submission = pd.DataFrame({'Id':pd.read_csv('cars_2000_test.csv').Id,'SalePrice':prediction})
+  my_submission = pd.DataFrame({'Id':pd.read_csv('cars_6000_test.csv').Id,'SalePrice':prediction})
   my_submission.to_csv('{}.csv'.format(sub_name),index=False)
   print('A submission file has been made')
 
 make_submission(predictions[:,0],'cars_NN')
+
 
 
 # Use shap on NN model
@@ -195,6 +197,13 @@ explainer = shap.KernelExplainer(XGBModel.predict, samples)
 shap_values = explainer.shap_values(test,nsamples=100)
 
 shap.summary_plot(shap_values,test,title='XGBModel')
+#shap.plots.beeswarm(shap_values)
+#shap.plots.bar(shap_values)
+#shap.summary_plot(shap_values, plot_type='violin')
+#shap.plots.bar(shap_values[0])
+#shap.plots.waterfall(shap_values[0])
+#shap.plots.force(shap_values[0])
+
 
 #explainerX = shap.Explainer(XGBModel)
 #shap_valuesX = explainerX(test)

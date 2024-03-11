@@ -23,8 +23,8 @@ def safe_json_loads(string):
         return {}
 
 
-def create_specifications_df():
-    df_spesifikasjoner = pd.read_csv('../data/new_specs_40k.csv')
+def create_specifications_df(filepath):
+    df_spesifikasjoner = pd.read_csv(filepath)
 
     #access specifications column and convert JSON strings from csv file to Python dictionary
     df_spesifikasjoner['Specifications'] = df_spesifikasjoner['Specifications'].apply(json.loads)
@@ -33,17 +33,14 @@ def create_specifications_df():
     # Create new columns for each key
     for key in keys:
         df_spesifikasjoner[key] = df_spesifikasjoner['Specifications'].apply(lambda x: x.get(key))
-    #Create df copy to drop
+    #Create df copy for further processing
     df_specs = df_spesifikasjoner.copy()
     df_specs = df_specs.drop(['Specifications'], axis=1)
-    
     
     return df_specs
     
 def clean_specifications(df):
-    #minimize datatype
-    df_specs = df.copy()
-    
+
     #--Cleaning Kilometer --
     #remove string from 'Kilometer'
     df_specs['Kilometer'] = pd.to_numeric(df_specs['Kilometer'].str.replace(r'\D+', '', regex=True), errors='coerce')
@@ -114,13 +111,7 @@ if __name__ == "__main__":
     #print(cleaned_specifications['Omregistrering'])
     
     cleaned_specifications.to_csv('../data/cleanednew.csv')
-    
 
-    #incomplete_info = specifications.isna().sum()
-    #print(f"Rows missing more than 3 values: \n {incomplete_info}")
-  
-    #nan_count = specifications_clean.isna().sum()
-    #print(f"Missing values: \n {nan_count}")  
 
 
     #Rows containing all information

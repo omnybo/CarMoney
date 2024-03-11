@@ -1,0 +1,10 @@
+{
+    "editor.quickSuggestions": {
+        "strings": "on"
+    },
+    "python.analysis.autoFormatStrings": true,
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.completeFunctionParens": true,
+    "python.analysis.inlayHints.callArgumentNames": "all",
+    "python.dataScience.exportWithOutputEnabled": true
+}

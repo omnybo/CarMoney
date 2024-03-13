@@ -90,13 +90,18 @@ def clean_specifications(df):
 def fill_missing_values(df):
     df_filled = df.copy()
     #fill missing values
-    int_col_to_fill = ['Antall seter','Antall dører', 'Sylindervolum (liter)','Kilometer','Omregistrering (kr)','Antall eiere','Rekkevidde (km)']
+    int_col_to_fill = ['Antall seter','Antall dører', 'Sylindervolum (liter)','Kilometer',
+                       'Omregistrering (kr)','Antall eiere','Rekkevidde (km)']
     df_filled[int_col_to_fill] = df_filled[int_col_to_fill].fillna(-1)
 
     #fill with 'zero' for missing values on object columns
-    obj_col_to_fill = ['Farge','Interiørfarge','Girkasse','Sist EU-godkjent']
+    obj_col_to_fill = ['Farge','Interiørfarge','Girkasse','Sist EU-godkjent','Vedlikehold']
 
     df_filled[obj_col_to_fill] = df_filled[obj_col_to_fill].fillna('zero')
+    
+    #condition = (df_filled['CO2-utslipp (g/km)'].isna()) & (df_filled['Drivstoff'] == 'Elektrisitet')
+    #df_filled.loc[condition, 'CO2-utslipp (g/km)'] = 0
+
 
     return df_filled
 def synchronize_dataframes(df1, df2):
@@ -139,6 +144,18 @@ def process_cat_data(df):
     missing_cat_data = categorical_data.isna().sum().sum()
     print('Missing data in cat_cols:', missing_cat_data)
 
+def df_fill_all_data(df):
+    df_filled_all = df.copy()
+
+    int_cols =  df_filled_all.select_dtypes(include = ['int32','int64']).columns
+    float_cols = df_filled_all.select_dtypes(include = ['float64']).columns
+    obj_cols = df_filled_all.select_dtypes(include= ['object']).columns
+
+    df_filled_all[obj_cols] = df_filled_all[obj_cols].fillna('zero')
+    df_filled_all[int_cols] = df_filled_all[int_cols].fillna(-1)
+    df_filled_all[float_cols] = df_filled_all[float_cols].fillna(-1)
+
+    return df_filled_all
 def plot_missing_data(percent_missing_before, percent_missing_after, datalabel1, datalabel2):
     # Convert the Series to a DataFrame for plotting
     missing_data_df = percent_missing_before.reset_index()
@@ -198,21 +215,33 @@ if __name__ == '__main__':
     missing_numdata(cleaned)
     
     print(f"Percent missing values across dataset \n Before cleaning: {avg_missing_data_before}% \n After cleaning: {avg_missing_data_after}%")
-    plot_missing_data(percent_per_col_before, percent_per_col_after,'Original Data', 'Cleaned Data')
+    #plot_missing_data(percent_per_col_before, percent_per_col_after,'Original Data', 'Cleaned Data')
     
     #fill data:
     filled_data = fill_missing_values(cleaned)
     missing_values_filled, total_num_data_filled = process_num_data(filled_data)
     avg_missing_data_filled, percent_per_col_filled = missing_numdata(filled_data)
     #compare cleaned and with filled
-    plot_missing_data(percent_per_col_after, percent_per_col_filled, 'Cleaned Data', 'Data with Missing Values Filled In')
+    #plot_missing_data(percent_per_col_after, percent_per_col_filled, 'Cleaned Data', 'Data with Missing Values Filled In')
     
     #compare original and cleaned filled in data
-    plot_missing_data(percent_per_col_before, percent_per_col_filled, 'Raw data', 'Cleaned and filled data')
+    #plot_missing_data(percent_per_col_before, percent_per_col_filled, 'Raw data', 'Cleaned and filled data')
+    
+    missing_per_col = filled_data.isna().sum(axis=0)
+    #print('missing vals filled:\n',missing_per_col,'\n')
+
+    
+    print(avg_missing_data_filled)
+
+    #create df where all NaNs are filled in
+    data_no_miss_vals = df_fill_all_data(cleaned)
+    print(data_no_miss_vals.columns)
+
+
+    #print(filled_data[filled_data['Drivstoff'].isna()][['Finnkode', 'Drivstoff', 'Kilometer']])
 
     #synchronize dataframes
-    #df_cars_synced, cleaned_specs_synced = synchronize_dataframes(df1=df_cars, df2=cleaned)
-
+    df_cars_synced, cleaned_specs_synced = synchronize_dataframes(df1=df_cars, df2=data_no_miss_vals)
     #merge based on id Finnkode
     #merged_df = pd.merge(df_cars_synced, cleaned_specs_synced, on='Finnkode', how='inner')
     '''

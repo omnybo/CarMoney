@@ -10,7 +10,7 @@ import seaborn as sb
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import xgboost
+import xgboost as XGB
 import warnings
 warnings.filterwarnings('ignore')
 warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -19,11 +19,11 @@ import shap
 
 def get_data():
     # get train data
-    train_data_path = 'cars_data/cars_6000_train.csv'
+    train_data_path = 'cars_data/cars_40k_train.csv'
     train = pd.read_csv(train_data_path)
 
     # get test data
-    test_data_path = 'cars_data/cars_6000_test.csv'
+    test_data_path = 'cars_data/cars_40k_test.csv'
     test = pd.read_csv(test_data_path)
 
     return train, test
@@ -37,7 +37,7 @@ def get_combined_data():
 
     combined = train.append(test)
     combined.reset_index(inplace=True)
-    combined.drop(['index', 'Id', 'Finnkode'], inplace=True, axis=1)
+    combined.drop(['index', 'Id', 'Finnkode','Effekt','Interioerfarge','NestefristforEUKontroll','SistEUGodkjent'], inplace=True, axis=1)
     print(combined)
 
     return combined, target
@@ -79,7 +79,7 @@ cat_cols = get_cols_with_no_nans(combined , 'no_num')
 
 print ('Number of numerical columns with no nan values :',len(num_cols))
 print ('Number of nun-numerical columns with no nan values :',len(cat_cols))
-
+print(cat_cols)
 combined = combined[num_cols + cat_cols]
 combined.hist(figsize = (12,10))
 plt.show()
@@ -98,6 +98,7 @@ def oneHotEncode(df,colNames):
     for col in colNames:
         if( df[col].dtype == np.dtype('object')):
             dummies = pd.get_dummies(df[col],prefix=col)
+            print(dummies)
             df = pd.concat([df,dummies],axis=1)
 
             #drop the encoded column
@@ -109,11 +110,12 @@ print('There were {} columns before encoding categorical features'.format(combin
 combined = oneHotEncode(combined, cat_cols)
 print('There are {} columns after encoding categorical features'.format(combined.shape[1]))
 
+print(combined)
 
 def split_combined():
     global combined
-    train = combined[:5850] # Need to change after final data
-    test = combined[5850:]
+    train = combined[:39999] # Need to change after final data
+    test = combined[39999:]
 
     return train, test
 
@@ -140,7 +142,15 @@ checkpoint = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=1, sav
 callbacks_list = [checkpoint]
 
 # Train DNN
-history = NN_model.fit(train, target, epochs=100, batch_size=16, validation_split=0.20, callbacks=callbacks_list)
+history = NN_model.fit(train, target, epochs=100, batch_size=32, validation_split=0.20, callbacks=callbacks_list)
+
+plt.plot(history.history['mean_absolute_error'], label='Training MAE')
+plt.plot(history.history['val_mean_absolute_error'], label='Validation MAE')
+plt.xlabel('Epoch')
+plt.ylabel('MAE')
+plt.title('MAE during Training')
+plt.legend()
+plt.show()
 
 # Find the best checkpoint
 best_epoch = history.history['val_loss'].index(min(history.history['val_loss']))
@@ -156,7 +166,7 @@ predictions = NN_model.predict(test)
 
 
 def make_submission(prediction, sub_name):
-  my_submission = pd.DataFrame({'Id':pd.read_csv('cars_data/cars_6000_test.csv').Id,'SalePrice':prediction})
+  my_submission = pd.DataFrame({'Id':pd.read_csv('cars_data/cars_40k_test.csv').Id,'SalePrice':prediction})
   my_submission.to_csv('{}.csv'.format(sub_name),index=False)
   print('A submission file has been made')
 
@@ -176,59 +186,62 @@ shap.summary_plot(shap_values[0],test, title='NNModel')
 #shap.initjs()
 #shap.force_plot(explainer.expected_value, shap_values[0,:]  ,test[0,:])
 
+x = 2
+
+if x == 2:
+    # Random forest model
+    RFModel = RandomForestRegressor()
+    RFModel.fit(train, target)
+
+
+    predicted_pricesRF = RFModel.predict(train)
+    MAE = mean_absolute_error(target, predicted_pricesRF)
+    print('Random forest validation MAE = ', MAE)
+
+    predicted_prices = RFModel.predict(test)
+    make_submission(predicted_prices,'cars_RF')
+
+    explainer = shap.KernelExplainer(RFModel.predict, samples)
+    shap_values = explainer.shap_values(test,nsamples=100)
+    shap.summary_plot(shap_values,test,title='RFModel')
+
+
+    # XGBoost model
+    XGBmodel = XGB.XGBRegressor()
+    XGBmodel.fit(train, target)
+
+    predicted_pricesXG = XGBmodel.predict(train)
+    MAE = mean_absolute_error(target, predicted_pricesXG)
+    print('XGBoost validation MAE = ', MAE)
+
+    XGB_predictions = XGBmodel.predict(test)
+    make_submission(XGB_predictions,'cars_XGB')
+
+
+    # Use shap on XGBoost
+    explainer = shap.KernelExplainer(XGBmodel.predict, samples)
+    shap_values = explainer.shap_values(test,nsamples=100)
+    shap.summary_plot(shap_values,test,title='XGBModel')
+
+
+
+    #shap.plots.beeswarm(shap_values)
+    #shap.plots.bar(shap_values)
+    #shap.summary_plot(shap_values, plot_type='violin')
+    #shap.plots.bar(shap_values[0])
+    #shap.plots.waterfall(shap_values[0])
+    #shap.plots.force(shap_values[0])
+
+
+    #explainerX = shap.Explainer(XGBModel)
+    #shap_valuesX = explainerX(test)
+    #shap.plots.waterfall(shap_valuesX[0])
+    #shap.summary_plot(shap_valuesX,test)
+    #shap.summary_plot(shap_valuesX[0],test)
 
 
 
 
-
-# XGBoost model
-XGBModel = xgboost.XGBRegressor().fit(train, target)
-
-predicted_pricesXG = XGBModel.predict(train)
-MAE = mean_absolute_error(target, predicted_pricesXG)
-print('XGBoost validation MAE = ', MAE)
-
-XGB_predictions = XGBModel.predict(test)
-make_submission(XGB_predictions,'cars_XGB')
-
-
-# Use shap on XGBoost
-explainer = shap.KernelExplainer(XGBModel.predict, samples)
-shap_values = explainer.shap_values(test,nsamples=100)
-
-shap.summary_plot(shap_values,test,title='XGBModel')
-#shap.plots.beeswarm(shap_values)
-#shap.plots.bar(shap_values)
-#shap.summary_plot(shap_values, plot_type='violin')
-#shap.plots.bar(shap_values[0])
-#shap.plots.waterfall(shap_values[0])
-#shap.plots.force(shap_values[0])
-
-
-#explainerX = shap.Explainer(XGBModel)
-#shap_valuesX = explainerX(test)
-#shap.plots.waterfall(shap_valuesX[0])
-#shap.summary_plot(shap_valuesX,test)
-#shap.summary_plot(shap_valuesX[0],test)
-
-
-
-
-# Random forest model
-RFModel = RandomForestRegressor()
-RFModel.fit(train, target)
-
-predicted_pricesRF = RFModel.predict(train)
-MAE = mean_absolute_error(target, predicted_pricesRF)
-print('Random forest validation MAE = ', MAE)
-
-predicted_prices = RFModel.predict(test)
-make_submission(predicted_prices,'cars_RF')
-
-explainer = shap.KernelExplainer(RFModel.predict, samples)
-shap_values = explainer.shap_values(test,nsamples=100)
-
-shap.summary_plot(shap_values,test,title='RFModel')
 
 
 

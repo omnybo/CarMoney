@@ -8,29 +8,6 @@ def retrieve_data():
     df_utstyr = pd.read_csv('../data_processing/table_utstyr.csv')
     df_beskrivelse = pd.read_csv('../data_processing/table_beskrivelse.csv')
     return df_cars, df_spesifikasjoner, df_utstyr, df_beskrivelse
-'''
-name_dtype = df_cars['car_name'].dtype
-finnkode_dtype = df_cars['Finnkode'].dtype
-link_dtype = df_cars['Link'].dtype
-price_dtype = df_cars['Price'].dtype
-
-print(f"datatypes: Name - {name_dtype}, Finnkode - {finnkode_dtype}, Link -  {link_dtype}, Price - {price_dtype}")
-'''
-def create_specifications_df():
-    _, df_spesifikasjoner,_ ,_ = retrieve_data() # Get specs data only
-    #access specifications column and convert JSON strings from csv file to Python dictionary
-    df_spesifikasjoner['Specifications'] = df_spesifikasjoner['Specifications'].apply(json.loads)
-    #Access the labels for each spec
-    keys = list(df_spesifikasjoner['Specifications'].iloc[0].keys())
-    # Create new columns for each key
-    for key in keys:
-        df_spesifikasjoner[key] = df_spesifikasjoner['Specifications'].apply(lambda x: x.get(key))
-
-    # Drop the Specifications column, to not contain list of specs
-    df_spesifikasjoner = df_spesifikasjoner.drop('Specifications', axis=1)
-
-    return df_spesifikasjoner
-
 
 if __name__ == "__main__":
      

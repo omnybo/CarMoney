@@ -5,6 +5,7 @@ import ast
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import time
 def safe_literal_eval(s):
     try:
         # Only attempt to evaluate strings that look like lists
@@ -81,6 +82,7 @@ def clean_specifications(df):
     # Condition where 'Girkasse' is NaN and 'Drivstoff' is 'elektrisk'
     condition = (cleaned_specs['Girkasse'].isna()) & (cleaned_specs['Drivstoff'] == 'Elektrisitet')
 
+    
     # Fill 'Girkasse' with 'Automat' under the specified condition
     cleaned_specs.loc[condition, 'Girkasse'] = 'Automat'
     #print(cleaned_specs[cleaned_specs['Rekkevidde (km)'].isna()][['Rekkevidde (km)', 'Finnkode', 'Drivstoff']])
@@ -185,12 +187,12 @@ def plot_missing_data(percent_missing_before, percent_missing_after, datalabel1,
         handle.set_label(label)
     plt.gca().legend(title="Cleaning State")
     plt.tight_layout()
-    
-    plt.show()
+    plt.show(block=False)
+  
 
 
 if __name__ == '__main__':
-    df_cars = pd.read_csv('full_dataset/all_cars.csv')
+    #df_cars = pd.read_csv('full_dataset/all_cars.csv')
     df_specifications = pd.read_csv('data/specifications_ready.csv')
     df_specifications.drop(columns='Unnamed: 0', axis=1, inplace=True)
     
@@ -225,7 +227,7 @@ if __name__ == '__main__':
     #plot_missing_data(percent_per_col_after, percent_per_col_filled, 'Cleaned Data', 'Data with Missing Values Filled In')
     
     #compare original and cleaned filled in data
-    #plot_missing_data(percent_per_col_before, percent_per_col_filled, 'Raw data', 'Cleaned and filled data')
+    plot_missing_data(percent_per_col_before, percent_per_col_filled, 'Raw data', 'Cleaned and filled data')
     
     missing_per_col = filled_data.isna().sum(axis=0)
     #print('missing vals filled:\n',missing_per_col,'\n')
@@ -237,11 +239,13 @@ if __name__ == '__main__':
     data_no_miss_vals = df_fill_all_data(cleaned)
     print(data_no_miss_vals.columns)
 
-
+    while plt.get_fignums():
+        time.sleep(1)
+    
     #print(filled_data[filled_data['Drivstoff'].isna()][['Finnkode', 'Drivstoff', 'Kilometer']])
 
     #synchronize dataframes
-    df_cars_synced, cleaned_specs_synced = synchronize_dataframes(df1=df_cars, df2=data_no_miss_vals)
+    #df_cars_synced, cleaned_specs_synced = synchronize_dataframes(df1=df_cars, df2=data_no_miss_vals)
     #merge based on id Finnkode
     #merged_df = pd.merge(df_cars_synced, cleaned_specs_synced, on='Finnkode', how='inner')
     '''

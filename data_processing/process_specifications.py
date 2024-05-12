@@ -1,4 +1,3 @@
-from xml.etree.ElementInclude import include
 import pandas as pd
 import json
 import ast
@@ -49,46 +48,49 @@ def create_specifications_df(filepath):
     
     return df_specs
 
-def correct_dtypes(df):
+def correct_dtypes(df, cols_drop_units):
     df_specs = df.copy()
-    cols_drop_units = ['Kilometer', 'Vekt', 'Maksimal tilhengervekt', 'CO2-utslipp','Omregistrering','Sylindervolum','Rekkevidde (WLTP)']
-    #Drop units and convert to float
-    for column in cols_drop_units:
-        df_specs[column] = pd.to_numeric(df_specs[column].astype(str).str.replace(r'\D+', '', regex=True), errors='coerce')
 
+    # Check each column before attempting to clean and convert
+    for column in cols_drop_units:
+        if column in df.columns:
+            print(f"Data for {column} before cleaning {df_specs[column].unique()[:5]}  ")  # Display first 5 unique cleaned values
+
+            # Assuming decimals are not important except for specific fields like 'Vekt'
+            regex_pattern = r'[^\d.]'
+            df_specs[column] = pd.to_numeric(df_specs[column].astype(str).str.replace(regex_pattern, '', regex=True), errors='coerce') 
+            print(f"Cleaned data for {column}: {df_specs[column].unique()[:5]}")  # Display first 5 unique cleaned values
+   
     # Convert to integer with NaN handling
     columns_to_int = ['Antall eiere', 'Antall dører', 'Antall seter']
     for column in columns_to_int:
-        # Use Int64 (capital "I") dtype for nullable integer support
-        df_specs[column] = pd.to_numeric(df_specs[column], errors='coerce').astype('Int64')
+        if column in df_specs.columns:
+            df_specs[column] = pd.to_numeric(df_specs[column], errors='coerce').astype('Int64')
 
     return df_specs
 
-def clean_specifications(df):
+def clean_specifications(df, thresh_decimal):
     df_specs = df.copy()
 
     missing_per_row = df_specs.isna().sum(axis=1)
     missing_per_col = df_specs.isna().sum(axis=0)
-    #print('missing vals:\n',missing_per_col,'\n')
-    rows_to_drop = missing_per_row >= 18
-    #print(f"Number of rows missing more than 18 values: {df_specs.isna().sum()}")
+    print('Missing Before:\n',missing_per_col,'\n')
+    #drop rows missing more than x values
+    rows_to_drop = missing_per_row >= len(df_specs.columns.isna())*thresh_decimal
+    print(f"Number of rows: {df_specs.isna().sum()}")
     df_specs = df_specs[~rows_to_drop]
     
-    #Drop unnecessary columns and columns missing in more than 30k
+    #Dropping unnecessary columns and columns missing in more than 30k
     columns_to_drop = ['Bilen står i', 'Chassis nr. (VIN)', 'Årsavgift', 'Salgsform', 'Pris eks omreg','Fargebeskrivelse',
                        'Hjuldriftnavn','Garanti inntil','Batterikapasitet','Str. lasterom','Garanti']
     cleaned_specs = df_specs.drop(columns=columns_to_drop, axis=1)
     
-    # Condition where 'Girkasse' is NaN and 'Drivstoff' is 'elektrisk'
-    condition = (cleaned_specs['Girkasse'].isna()) & (cleaned_specs['Drivstoff'] == 'Elektrisitet')
-
-    
-    # Fill 'Girkasse' with 'Automat' under the specified condition
+    #fill with 'Automat' if condition is met
+    condition = (cleaned_specs['Girkasse'].isna()) & ((cleaned_specs['Drivstoff'] == 'Elektrisitet') |(cleaned_specs['Drivstoff'] == 'El + Bensin') | (cleaned_specs['Drivstoff'] == 'El + Diesel'))
     cleaned_specs.loc[condition, 'Girkasse'] = 'Automat'
-    #print(cleaned_specs[cleaned_specs['Rekkevidde (km)'].isna()][['Rekkevidde (km)', 'Finnkode', 'Drivstoff']])
-    missing_per_cols = cleaned_specs.isna().sum(axis=0)
-    #print('missing vals:\n',missing_per_cols,'\n')
+
     return cleaned_specs
+
 def fill_missing_values(df):
     df_filled = df.copy()
     #fill missing values
@@ -103,8 +105,6 @@ def fill_missing_values(df):
     
     #condition = (df_filled['CO2-utslipp (g/km)'].isna()) & (df_filled['Drivstoff'] == 'Elektrisitet')
     #df_filled.loc[condition, 'CO2-utslipp (g/km)'] = 0
-
-
     return df_filled
 def synchronize_dataframes(df1, df2):
 
@@ -187,71 +187,64 @@ def plot_missing_data(percent_missing_before, percent_missing_after, datalabel1,
         handle.set_label(label)
     plt.gca().legend(title="Cleaning State")
     plt.tight_layout()
-    plt.show(block=False)
+    plt.savefig('dataComparison')
   
+def plot_hist(df,column,title,x_label, y_label,xbins):
+    plt.figure(figsize=(10, 6))
 
+    bins = [xbins]
+    plt.hist(x=df[column], bins=xbins, color='skyblue', edgecolor='gray')  
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.grid(True)
+    #plt.show()
 
 if __name__ == '__main__':
     #df_cars = pd.read_csv('full_dataset/all_cars.csv')
-    df_specifications = pd.read_csv('data/specifications_ready.csv')
+    df_specifications = pd.read_csv('data_processing/specifications_ready.csv')
     df_specifications.drop(columns='Unnamed: 0', axis=1, inplace=True)
-    
-    # correct datatypes from obj to int/float
-    df_specifications = correct_dtypes(df_specifications)
-    
-    # Rename columns to include units
     df_specifications.rename(columns={"Maksimal tilhengervekt": "Maksimal tilhengervekt (kg)", "Vekt": "Vekt (kg)",
                                       "CO2-utslipp": "CO2-utslipp (g/km)", "Omregistrering": "Omregistrering (kr)", 
-                                      "Sylindervolum": "Sylindervolum (liter)", "Rekkevidde (WLTP)": "Rekkevidde (km)"}, inplace=True)
-
-    #clean
-    cleaned = clean_specifications(df_specifications)
+                                      "Sylindervolum": "Sylindervolum (liter)", "Rekkevidde (WLTP)": "Rekkevidde (km)", "Effekt": "Effekt (hk)"}, inplace=True)
+    missing = df_specifications.isnull().sum().sum()
+    #print(missing.sort_values(ascending=True))
+    print(f"\n Total missing values:\n {missing}\n")
+    print(f"Rows, Columns: [{df_specifications.shape[0]},{df_specifications.shape[1]}]")
     
-    # missing data
-    missing_num_before, total_num_data_before = process_num_data(df_specifications)
-    missing_num_after,total_num_data_after = process_num_data(cleaned)
+    columns_to_drop_units = ['Kilometer','Effekt (hk)', 'Vekt (kg)', 'Maksimal tilhengervekt (kg)', 'CO2-utslipp (g/km)','Omregistrering (kr)','Sylindervolum (liter)','Rekkevidde (km)']
+    # correct datatypes from obj to int/float
+    df_specs = correct_dtypes(df_specifications, columns_to_drop_units)
+    missing_per_row = df_specs.isna().sum(axis=1)
+    missing_per_col = df_specs.isna().sum(axis=0)
+   
+    cleaned = clean_specifications(df_specs)
+    cleaned.to_csv('cleaned_data.csv')
+    nans = pd.DataFrame(cleaned.isnull().sum().sort_values(ascending=False), columns=['Number of missing values'])
+    #missing values percent
+    nans['% Missing'] = cleaned.isnull().sum().sort_values(ascending=False)/len(cleaned)
+    print(nans)
 
-    # show percent missing data per column
+    missing_num_before, total_num_data_before = process_num_data(df_specifications)
+    missing_num_after, total_num_data_after = process_num_data(cleaned)
+    print(f"Numeric data integrity, before vs. after cleaning: \n Before: {missing_num_before} missing \n After: {missing_num_after} missing")
+
+    #percent missing data per column
     avg_missing_data_before, percent_per_col_before = missing_numdata(df_specifications)
     avg_missing_data_after, percent_per_col_after = missing_numdata(cleaned)
-    missing_numdata(cleaned)
     
     print(f"Percent missing values across dataset \n Before cleaning: {avg_missing_data_before}% \n After cleaning: {avg_missing_data_after}%")
-    #plot_missing_data(percent_per_col_before, percent_per_col_after,'Original Data', 'Cleaned Data')
+    plot_missing_data(percent_per_col_before, percent_per_col_after,'Original Data', 'Cleaned Data')
     
     #fill data:
     filled_data = fill_missing_values(cleaned)
     missing_values_filled, total_num_data_filled = process_num_data(filled_data)
     avg_missing_data_filled, percent_per_col_filled = missing_numdata(filled_data)
-    #compare cleaned and with filled
-    #plot_missing_data(percent_per_col_after, percent_per_col_filled, 'Cleaned Data', 'Data with Missing Values Filled In')
-    
+
     #compare original and cleaned filled in data
     plot_missing_data(percent_per_col_before, percent_per_col_filled, 'Raw data', 'Cleaned and filled data')
     
     missing_per_col = filled_data.isna().sum(axis=0)
-    #print('missing vals filled:\n',missing_per_col,'\n')
+    print('missing vals filled:\n',missing_per_col,'\n')
 
-    
     print(avg_missing_data_filled)
-
-    #create df where all NaNs are filled in
-    data_no_miss_vals = df_fill_all_data(cleaned)
-    print(data_no_miss_vals.columns)
-
-    while plt.get_fignums():
-        time.sleep(1)
-    
-    #print(filled_data[filled_data['Drivstoff'].isna()][['Finnkode', 'Drivstoff', 'Kilometer']])
-
-    #synchronize dataframes
-    #df_cars_synced, cleaned_specs_synced = synchronize_dataframes(df1=df_cars, df2=data_no_miss_vals)
-    #merge based on id Finnkode
-    #merged_df = pd.merge(df_cars_synced, cleaned_specs_synced, on='Finnkode', how='inner')
-    '''
-    #information
-    
-    print(df_specifications.info())
-    print('\n')
-    print(cleaned.info())
-    '''

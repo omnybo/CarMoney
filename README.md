@@ -16,14 +16,14 @@ Technologies, libraries and frameworks used in this project:
     Scikit-learn: Machine learning library for building models.
     PolyFuzz: For string matching in data preprocessing.
 
-1. Clone the repository
+1. **Clone the repository**
     git clone https://your-project-link
     cd CarMoney
-2. install dependencies
+2. **install dependencies**
     pip install -r requirements.txt
 **Web Scraping**
 1. Creating the database for holding data
-    python create_database.py
+    _python create_database.py_
 2. Initializing Scraper
    python finn_car_scraper.py
 **Data Processing**

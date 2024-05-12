@@ -23,7 +23,7 @@ Technologies, libraries and frameworks used in this project:
     pip install -r requirements.txt
 **Web Scraping**
 1. Creating the database for holding data
-    _python create_database.py_
+    python create_database.py
 2. Initializing Scraper
    python finn_car_scraper.py
 **Data Processing**

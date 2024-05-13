@@ -53,8 +53,8 @@ def synchronize_dataframes(df_cars, df_utstyr, df_specs):
 if __name__ == "__main__":
 
     df_cars = pd.read_csv('full_dataset/all_cars.csv')
-    #df_specifications = pd.read_csv('full_dataset/all_specs.csv')
-    #df_equipment = pd.read_csv('full_dataset/all_equipments.csv')
+    df_specifications = pd.read_csv('full_dataset/all_specs.csv')
+    df_equipment = pd.read_csv('full_dataset/all_equipments.csv')
     pd.options.display.float_format = '{:.2f}'.format  
     df_cars_processed, price_info = clean_cars(df_cars)
     print(f"Car Price Information: {price_info}")
@@ -67,6 +67,6 @@ if __name__ == "__main__":
     
     df_cars_synced, df_specs_synced, df_equipment_synced = synchronize_dataframes(df_cars, df_equipment, df_specifications)
 
-    df_cars_synced.to_csv('../data/synced_cars.csv')
-    df_specs_synced.to_csv('../data/synced_specifications.csv')
-    df_equipment_synced.to_csv('../data/synced_equipment.csv')
+    #df_cars_synced.to_csv('../data/synced_cars.csv')
+    #df_specs_synced.to_csv('../data/synced_specifications.csv')
+    #df_equipment_synced.to_csv('../data/synced_equipment.csv')

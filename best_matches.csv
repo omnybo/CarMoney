@@ -1,0 +1,242 @@
+,From,To,Similarity
+0,-antispinn,antispinn,1.0
+1,anti-spinn,antispinn,1.0
+2,• multifunksjonsratt,multifunksjonsratt,1.0
+3,- multifunksjonsratt,multifunksjonsratt,1.0
+7,m-sport multifunksjonsratt,multifunksjonsratt,0.906
+9,-abs-bremser,abs-bremser,1.0
+12,• airbag foran,airbag foran,1.0
+13,- airbag foran,airbag foran,1.0
+14,- elektriske speil,elektriske speil,1.0
+15,-elektriske speil,elektriske speil,1.0
+16,elektrisk speil,elektriske speil,0.929
+19,- el.vinduer,el.vinduer,1.0
+20,• el.vinduer,el.vinduer,1.0
+21,• oppvarmede seter,oppvarmede seter,1.0
+22,- oppvarmede seter,oppvarmede seter,1.0
+23,• servostyring,servostyring,1.0
+24,- servostyring,servostyring,1.0
+25,- kjørecomputer,kjørecomputer,1.0
+26,-kjørecomputer,kjørecomputer,1.0
+28,med kjørecomputer,kjørecomputer,0.978
+29,• sentrallås,sentrallås,1.0
+30,- sentrallås,sentrallås,1.0
+31,*regnsensor,regnsensor,1.0
+32,regnsensor.,regnsensor,1.0
+35,anti-skrens,antiskrens,1.0
+36,• antiskrens,antiskrens,1.0
+37,-navigasjonssystem,navigasjonssystem,1.0
+38,- navigasjonssystem,navigasjonssystem,1.0
+41,6um navigasjonssystem,navigasjonssystem,0.892
+42,3ag ryggekamera,ryggekamera,0.89
+43,3 ag ryggekamera,ryggekamera,1.0
+44,3ag - ryggekamera,ryggekamera,0.89
+46,- metallic lakk,metallic lakk,1.0
+50,-parkeringsensor bak,parkeringsensor bak,1.0
+53,• parkeringsensor bak,parkeringsensor bak,1.0
+54,• startsperre,startsperre,1.0
+55,- startsperre,startsperre,1.0
+57,.dab+ radio,radio dab+,1.0
+59,midtarmlene,midtarmlene,1.0
+60,• midtarmlene,midtarmlene,1.0
+62,midt armlene,midtarmlene,0.875
+63,midtarmlen,midtarmlene,0.953
+64,midtarmlenet,midtarmlene,0.939
+65,- midt armlene,midtarmlene,0.875
+66,-cruisekontroll,cruisekontroll,1.0
+67,• cruisekontroll,cruisekontroll,1.0
+68,cruisekontrol,cruisekontroll,0.965
+70,handsfree opplegg,handsfree opplegg,1.0
+71,• handsfree opplegg,handsfree opplegg,1.0
+72,hands free opplegg,handsfree opplegg,0.87
+75,• parkeringsensor foran,parkeringsensor foran,1.0
+78,-parkeringsensor foran,parkeringsensor foran,1.0
+80,r01 sommerdekk,sommerdekk,0.857
+81,"19"" sommerdekk",sommerdekk,1.0
+82,bra sommerdekk,sommerdekk,0.939
+83,beltevarsler,beltevarsler,1.0
+84,- beltevarsler,beltevarsler,1.0
+87,cd-spiller,cd-spiller,1.0
+88,• cd-spiller,cd-spiller,1.0
+90,- air conditioner,air condition,0.903
+91,- air condition,air condition,1.0
+92,• air condition,air condition,1.0
+93,air conditioner,air condition,0.903
+94,• diesel-partikkelfilter,diesel-partikkelfilter,1.0
+95,- diesel-partikkelfilter,diesel-partikkelfilter,1.0
+97,sentrallås fjernstyrt,fjernstyrt sentrallås,1.0
+98,pollenfilter,pollenfilter,1.0
+99,• pollenfilter,pollenfilter,1.0
+101,- alarm,alarm,1.0
+102,-alarm,alarm,1.0
+103,-skinnratt,skinnratt,1.0
+104,m skinnratt,skinnratt,1.0
+105,lakkerte utvendige speil,lakkerte utvendige speil,1.0
+106,• lakkerte utvendige speil,lakkerte utvendige speil,1.0
+107,sideairbager,sideairbager,1.0
+108,• sideairbager,sideairbager,1.0
+109,sideairbager bak,sideairbager,0.975
+110,aux-inngang,aux-inngang,1.0
+111,• aux-inngang,aux-inngang,1.0
+112,elektrisk sete u.memory,elektrisk sete m. memory,0.941
+113,• elektrisk sete u. memory,elektrisk sete m. memory,1.0
+114,elektrisk sete u/memory,elektrisk sete m. memory,0.941
+115,• skinnseter,skinnseter,1.0
+116,skinnseter.,skinnseter,1.0
+233,"oppvarmede seter foran, ant.: 4",oppvarmede seter,0.863
+234,"oppvarmede seter foran, ant.",oppvarmede seter,0.863
+237,stor kjørecomputer plus,kjørecomputer,0.871
+295,• abs-bremser,abs-bremser,1.0
+315,oppvarmede seter bak.,oppvarmede seter,0.963
+340,midtarmlene foran,midtarmlene,0.928
+341,midtarmlene  foran,midtarmlene,0.928
+342,midtarmlen foran,midtarmlene,0.879
+353,klimaanlegg med 3 soner,klimaanlegg,0.866
+354,klimaanlegg med 5 soner,klimaanlegg,0.866
+366,klimaanlegg bak,klimaanlegg,0.972
+367,- klimaanlegg bak,klimaanlegg,0.972
+455,3 isofix bak,isofix,0.952
+456,"isofix, bak",isofix,0.952
+494,oppvarmede bakseter,oppvarmede seter,0.86
+495,oppvarmede bakseter.,oppvarmede seter,0.86
+496,oppvarmede bak seter,oppvarmede seter,0.963
+514,oppvarmede seter foran x2,oppvarmede seter,0.899
+515,- oppvarmede seter foran,oppvarmede seter,0.899
+517,oppvarmede forseter.,oppvarmede seter,0.889
+525,parkeringsensorer bak,parkeringsensor bak,0.916
+566,-parkeringsensor foran og bak,parkeringsensor foran,0.977
+570,parkeringsensor foran og bak,parkeringsensor foran,0.977
+603,parkeringsensorer foran,parkeringsensor foran,0.923
+658,parkeringsensorer foran og bak,parkeringsensor foran,0.905
+712,parkeringsensor foran/bak,parkeringsensor foran,0.851
+794,bluetooth audio,bluetooth,0.852
+795,bluetooth: audio,bluetooth,0.852
+975,skinn multifunksjonsratt,multifunksjonsratt,0.94
+1106,komfort midtarmlene,midtarmlene,0.859
+1240,- oppvarmet multifunksjonsratt,multifunksjonsratt,0.863
+1241,oppvarmet multifunksjonsratt:,multifunksjonsratt,0.863
+1255,parkerings sensor f+b,parkeringsensor bak,0.869
+1347,parkeringsensorer,parkeringsensor bak,0.888
+1381,- adaptiv cruise-kontroll,cruisekontroll,0.85
+1516,midtarmlene bak,midtarmlene,0.975
+1519,midtarmlenet bak,midtarmlene,0.918
+2045,klimaanlegg 3 soner,klimaanlegg,0.884
+2046,aut klimaanlegg 3 soner,klimaanlegg,0.862
+2053,218 ryggekamera,ryggekamera,0.877
+2054,218 - ryggekamera,ryggekamera,0.877
+2099,multifunksjon for ratt,multifunksjonsratt,0.851
+2100,multifunksjons f ratt,multifunksjonsratt,0.893
+2212,oppvarmede seter foran og bak,oppvarmede seter,0.872
+2213,- oppvarmede seter foran og bak,oppvarmede seter,0.872
+2230,elektriske seter m/ memory,elektrisk sete m. memory,0.939
+2231,- elektriske seter m/ memory,elektrisk sete m. memory,0.939
+2232,elektrisk sete m/ memory,elektrisk sete m. memory,1.0
+2233,elektriske seter m/memory,elektrisk sete m. memory,0.904
+2416,- multifunksjonsratt i skinn,multifunksjonsratt,0.94
+2418,m-sport multifunksjonsratt i skinn,multifunksjonsratt,0.861
+2475,el.vinduer foran,el.vinduer,0.915
+2535,xenon-lys,xenonlys,1.0
+2703,2. soners klimaanlegg,klimaanlegg,0.864
+2746,fjernst. sentrallås,fjernstyrt sentrallås,0.868
+2747,fjernstyrt sentrallås,fjernstyrt sentrallås,1.0
+2753,takrails i alu,takrails,0.944
+2754,takrails alu,takrails,0.944
+2773,skinn-interiør,skinninteriør,1.0
+2830,"klimaanlegg, 3. seterad",klimaanlegg,0.877
+2831,• klimaanlegg 3. seterad,klimaanlegg,0.877
+2861,sommer- og vinterdekk,sommerdekk,0.893
+2862,sommer og vinterdekk,sommerdekk,0.893
+2863,sommerdekk og vinterdekk,sommerdekk,0.909
+2867,navigasjonssystem high,navigasjonssystem,0.938
+2868,- navigasjonssystem high,navigasjonssystem,0.938
+3043,lys og regnsensor,regnsensor,0.968
+3044,lys - og regnsensor,regnsensor,0.968
+3177,skinnratt med varme,skinnratt,0.878
+3331,elektriske speil med varme,elektriske speil,0.88
+3548,"ryggekamera,",ryggekamera,1.0
+3551,ryggekame,ryggekamera,0.925
+3735,el.vinduer foran og bak,el.vinduer,0.892
+3812,el. klimaanlegg ecc,klimaanlegg,0.859
+3813,klimaanlegg ecc,klimaanlegg,0.859
+4079,-sorte takrails,takrails,0.866
+4289,isofix feste,isofix,0.852
+4292,iso-fix feste,isofix,0.852
+4382,parkeringsensor f/b,parkeringsensor bak,0.973
+4500,elektrisk førersete m. memory,elektrisk sete m. memory,0.884
+4501,elektrisk førersete m/ memory,elektrisk sete m. memory,0.884
+4727,- 360 ryggekamera,ryggekamera,0.93
+4779,sommerhjul på alu. felg,sommerhjul,0.87
+5010,521 regnsensor,regnsensor,0.888
+5011,521 - regnsensor,regnsensor,0.888
+5052,midtarmlene foran og bak,midtarmlene,0.908
+5053,midtarmlene foran / bak,midtarmlene,0.908
+5163,• lettmet. felg vinter,lettmet. felg vinter,1.0
+5166,lettmet. felg. sommer,lettmet. felg sommer,1.0
+5269,parkeringsensor,parkeringsensor bak,0.973
+5337,345 regnsensor,regnsensor,0.884
+5338,345 - regnsensor,regnsensor,0.884
+5357,to- sone klimaanlegg,klimaanlegg,0.917
+5504,sommerdekk på alu. felg,sommerdekk,0.867
+5852,249 - multifunksjonsratt,multifunksjonsratt,0.94
+5853,249 multifunksjonsratt,multifunksjonsratt,0.94
+6422,fm radio,radio fm,1.0
+6580,side-airbag,sideairbager,0.934
+6581,sideairbag,sideairbager,0.934
+6687,aut. klimaanlegg,klimaanlegg,0.969
+6688,auto klimaanlegg,klimaanlegg,0.939
+6966,navigasjonssystem pro,navigasjonssystem,0.969
+6967,navigasjonssystem / gps,navigasjonssystem,0.905
+7074,sideairbag foran og hodeairbag,sideairbager,0.861
+7216,multifunksjonsratt m/ varme,multifunksjonsratt,0.949
+7217,multifunksjonsratt med varme,multifunksjonsratt,0.936
+7218,multifunksjonsratt m/ gir,multifunksjonsratt,0.964
+7549,klimaanlegg -2 soner,klimaanlegg,0.884
+7799,"16"" alu sommerhjul",sommerhjul,0.949
+7800,21'' alu sommerhjul,sommerhjul,0.949
+7967,multi-funksjons ratt,multifunksjonsratt,0.893
+8142,"17"" alu. vinterhjul",vinterhjul,0.938
+8143,"19"" alu. vinterhjul",vinterhjul,0.938
+8174,bluetooth + usb,bluetooth,0.937
+8336,gode sommerdekk og vinterdekk,sommerdekk,0.85
+8693,550 kjørecomputer,kjørecomputer,0.906
+8694,550 - kjørecomputer,kjørecomputer,0.906
+9266,-sentrallås med fjernstyring,fjernstyrt sentrallås,0.86
+10041,540 cruisekontroll,cruisekontroll,0.888
+10056,kjøre- computer,kjørecomputer,0.877
+10057,kjøre computer,kjørecomputer,0.877
+10119,• radio dab+,radio dab+,1.0
+10131,"20"" sommerdekk",sommerdekk,1.0
+10173,parkerings sensor foran og bak,parkeringsensor foran,0.884
+10240,skinninteriør i svart (au),skinninteriør,0.873
+10241,*skinninteriør i svart,skinninteriør,0.873
+11584,nye sommerdekk,sommerdekk,0.857
+11585,nye sommerdekk!,sommerdekk,0.857
+11890,vinterhjul på felg,vinterhjul,0.891
+12430,sort skinninteriør,skinninteriør,0.917
+12442,vinterhju,vinterhjul,0.917
+12571,elektrisk sete med memory,elektrisk sete m. memory,0.976
+12572,elektriske seter med memory,elektrisk sete m. memory,0.919
+12761,19`` sommerhjul,sommerhjul,1.0
+13138,"19"" alu felg på sommerhjul",sommerhjul,0.87
+13256,diesel partikkelfilter,diesel-partikkelfilter,0.92
+14774,el. oppvarmede forseter,oppvarmede seter,0.889
+14949,4- soners klimaanlegg,klimaanlegg,0.864
+14950,4 - sonet klimaanlegg,klimaanlegg,0.865
+15160,3 sone klimaanlegg,klimaanlegg,0.917
+15161,2 sonet klimaanlegg,klimaanlegg,0.865
+15376,386 takrails,takrails,0.865
+15377,386 - takrails,takrails,0.865
+15662,alu vinterdekk,vinterdekk,0.936
+15676,"18"" alu sommerdekk",sommerdekk,0.947
+15677,alu sommerdekk,sommerdekk,0.947
+15809,oppvarmede seter i 1. og 2. seterad,oppvarmede seter,0.886
+15810,oppvarmede seter - 2. seterad,oppvarmede seter,0.886
+16020,sorte vinterhjul,vinterhjul,0.852
+16021,"20"" sorte vinterhjul",vinterhjul,0.852
+16492,kjørecomputer plus,kjørecomputer,0.928
+16777,"sommerhjul aluf 19""",sommerhjul,0.897
+16778,"sommerhjul aluf 22""",sommerhjul,0.897
+18252,"19"" r line sommerhjul",sommerhjul,0.925
+18253,"19"" s line sommerhjul",sommerhjul,0.925
+18524,sommerhjul og vinterhjul,sommerhjul,0.912
+18525,sommerhjul vinterhjul,sommerhjul,0.912

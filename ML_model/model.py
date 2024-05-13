@@ -151,6 +151,47 @@ def RF_hyperparameters(train, test, target, test_target):
     print(f"Test MAE: {mae}")
 
 
+def NN_hyperparmeters(train, test, target, test_target):
+    def build_model(hp):
+        model = Sequential()
+        model.add(Dense(hp.Int('input_units', min_value=32, max_value=512, step=32),
+                        input_dim=train.shape[1], activation='relu'))
+
+        for i in range(hp.Int('n_layers', 1, 6)):  # Number of hidden layers
+            model.add(Dense(hp.Int(f'dense_{i}_units', min_value=32, max_value=256, step=32),
+                            activation=hp.Choice('dense_activation', values=['relu', 'tanh', 'sigmoid'])))
+
+        model.add(Dense(1, activation='linear'))  # Output layer
+        model.compile(optimizer=keras.optimizers.Adam(
+            hp.Float('learning_rate', min_value=1e-4, max_value=1e-2, sampling='LOG')),
+            loss='mean_absolute_error', metrics=['mean_absolute_error'])
+        return model
+
+    # Instantiate the tuner
+    tuner = RandomSearch(
+        build_model,
+        objective='val_mean_absolute_error',
+        max_trials=10,  # Number of variations on model
+        executions_per_trial=10,  # Number of times to train each model variation
+        directory='my_dir',
+        project_name='keras_tuning'
+    )
+
+    # Perform hypertuning
+    tuner.search(train, target, epochs=50, validation_data=(test, test_target))
+
+    # Get the optimal hyperparameters
+    best_hps = tuner.get_best_hyperparameters(num_trials=10)[0]
+
+    print(best_hps)
+    # Build the model with the optimal hyperparameters
+    model = tuner.hypermodel.build(best_hps)
+    history = model.fit(train, target, epochs=50, validation_data=(test, test_target))
+
+    # Evaluate the performance of the model with the best hyperparameters
+    eval_result = model.evaluate(test, test_target)
+    print("[test loss, test accuracy]:", eval_result)
+    
 
 def main():
     # Get and process the data

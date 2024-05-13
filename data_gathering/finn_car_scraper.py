@@ -68,7 +68,8 @@ class FinnkodeScraper:
     def extract_car_specs(self):
         self.driver.get(self.url)
         try:
-            # Use find_elements to get a list of all matching elements
+            #Use find_elements to get a list of all matching elements
+            #get panel of km, modellår, girkasse and drivstoff + the media__body with each specs label and its value
             elements = self.driver.find_elements(By.CSS_SELECTOR, "section.panel.panel--bleed.summary-icons .media__body")
 
             specs = {}

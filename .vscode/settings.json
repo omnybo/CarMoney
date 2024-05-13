@@ -6,5 +6,7 @@
     "python.analysis.autoImportCompletions": true,
     "python.analysis.completeFunctionParens": true,
     "python.analysis.inlayHints.callArgumentNames": "all",
-    "python.dataScience.exportWithOutputEnabled": true
+    "python.dataScience.exportWithOutputEnabled": true,
+    "python.pythonPath": "C:\\Program Files\\Python311\\python.exe",
+    "python.disableInstallationCheck": false
 }

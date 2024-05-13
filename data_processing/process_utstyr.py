@@ -3,8 +3,9 @@ import pandas as pd
 import ast
 from polyfuzz.models import EditDistance
 from polyfuzz import PolyFuzz
+from polyfuzz.models import Embeddings
 from tqdm import tqdm
-from itertools import islice
+from matplotlib import pyplot as plt
 def read_data(filepath):
     df_utstyr = pd.read_csv(filepath)
     #Convert list of equipment from dtype str to list(Finnkode, "[""x"",""y""]" => Finnkode,[x,y])
@@ -47,7 +48,7 @@ def polyfuzz_grouping(list_group):
     return matches
     #return matches
 
-def matchesfound(clusters,all_standardized_equipment, min_similarity):
+def matchesfound(clusters,all_standardized_equipment, min_similarity, ):
     #list of groups
     from_list_flat = [element for sublist in clusters.values() for element in sublist]
 
@@ -61,8 +62,11 @@ def matchesfound(clusters,all_standardized_equipment, min_similarity):
     tqdm.write("Matching with top equipment")
     matches =  model.get_matches()
     best_match = matches[matches['Similarity']>=min_similarity]
+    plt.clf()
+    visualization = model.visualize_precision_recall(kde=True)
+    plt.show()
     
-    return matches, best_match
+    return matches, best_match,visualization
 
 
 def apply_standardization(df, best_match):
@@ -82,7 +86,7 @@ def apply_standardization(df, best_match):
 
     return df, standardization_map
 
-def find_matches_with_top_equipment(low_freq_list, top_equipment_list, min_similarity=0.65):
+def find_matches_with_top_equipment(low_freq_list, top_equipment_list, min_similarity=0.85):
     # Initialize PolyFuzz model for individual string matching
     model = PolyFuzz("TF-IDF")
     all_matches = []
@@ -100,19 +104,80 @@ def find_matches_with_top_equipment(low_freq_list, top_equipment_list, min_simil
 
     return all_matches
 
-def one_hot_encode_equipment(toplist, df_utstyr):
+def one_hot_encode_equipment(toplist, df_utstyr, csv_name):
     #creating a column of each equipment
-    for equipment in toplist:
+    column_names = toplist.index.to_list()
+    for equipment in column_names:
         df_utstyr[equipment] = 0
 
 
     df_utstyr_dropped = df_utstyr.drop('Equipment', axis=1)
-    df_utstyr_dropped.to_csv('data/equipment_2nd_match_one_hot_encoded.csv', index=False)
+    df_utstyr_dropped.to_csv(csv_name, index=False)
     
 if __name__ == "__main__":
-    '''
+    
     #Reading 1st polyfuzz prosessed data
-    filepathv0 = 'data/equipments_1st_match.csv'
+    filepathv0 = 'full_dataset/all_equipments.csv'
+    df_utstyr = read_data(filepath=filepathv0)
+
+    #remove special chars and return full equipment list
+    df_utstyr_v0,all_equipment = standarize_equipment(df_utstyr)
+    exploded = df_utstyr_v0['Equipment'].explode()
+    #list of equipment names
+    
+    equipment_list = all_equipment.index.to_list()
+
+    top_equipment = all_equipment.head(n=37)  
+    one_occurence_equipment = low_freq_equipment(all_equipment)
+    print(top_equipment)
+    
+    pd.set_option('display.max_columns',10)
+    
+    print(f"Number of equipments occuring once: {len(one_occurence_equipment)}")
+    print('Total number of equipments:',len(all_equipment.index))
+    print(f"Top 37 equipment: \n {top_equipment}")
+    
+    #polyfuzz model for match clusters:
+    result = polyfuzz_grouping(equipment_list)
+    print(f"Clusters:\n{result}")
+    filename = 'results.txt'
+    with open(filename, 'w', encoding='utf-8') as file:
+        for key, value in result.items():
+            file.write((f"{key:}"))
+            if isinstance(value, list):
+                for item in value:
+                    file.write(f"{item}\n")
+            else:
+                file.write(f"{value}")
+            file.write('\n')
+    #find matches with top equipments, and matches above min_similarity
+    match, best_match,visualization = matchesfound(result,all_equipment, min_similarity=0.85)
+    #plt.savefig('score045.png')
+    best_match.to_csv('best_matches.csv')
+    match.to_csv('matches.csv')
+    pd.options.display.max_rows = 30
+    pd.set_option('display.max_columns',10)
+    pd.set_option('display.max_columns',100)
+    print(f"Matches \n{match}")
+    print(f"\n Best Matches:{best_match}")
+    print(len(result))
+    
+    
+
+    # Plotting a histogram of similarity scores
+    plt.figure(figsize=(10, 6))
+    plt.hist(match['Similarity'], bins=50, color='skyblue')
+    plt.title('Histogram of Similarity Scores')
+    plt.xlabel('Similarity Score')
+    plt.ylabel('Frequency')
+    plt.grid(True)
+    plt.show()
+    
+    print(best_match.describe())
+    '''
+    
+    #Reading 1st polyfuzz prosessed data
+    filepathv0 = 'data/csv_equipment/equipments_1st_match.csv'
     df_utstyr = read_data(filepath=filepathv0)
 
     #remove special chars and return full equipment list
@@ -128,6 +193,8 @@ if __name__ == "__main__":
     print('Total number of equipments:',len(all_equipment.index))
     print(f"Top 37 equipment: \n {top_equipment}")
     #polyfuzz model for match clusters:
+    '''
+    '''
     result = polyfuzz_grouping(equipment_list)
 
     #find matches with top equipments, and matches above min_similarity
@@ -139,12 +206,10 @@ if __name__ == "__main__":
     print('\n Standards: \n')
     print(standardization_map)
     one_hot_encode_equipment(toplist=top_equipment, df_utstyr=new_df)
-    
-    '''
+
     #Second polyfuzz processed data?
     filepath_v2 = 'data/equipments_2nd_match.csv'
     df_utstyr2 = read_data(filepath_v2)
-
 
     df_utstyr_v2,all_equipment = standarize_equipment(df_utstyr2)
     #list of equipment names
@@ -156,4 +221,5 @@ if __name__ == "__main__":
     print('Total number of equipments:',len(all_equipment.index))
     print(f"Top 37 equipment: \n {top_equipment}")
 
-    one_hot_encode_equipment(toplist=top_equipment.index.to_list(), df_utstyr=df_utstyr_v2)
+    one_hot_encode_equipment(toplist=top_equipment, df_utstyr=df_utstyr_v2, csv_name='data/equipment_3dd_match_one_hot_encoded.csv')    
+    '''

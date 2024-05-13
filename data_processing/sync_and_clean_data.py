@@ -2,155 +2,71 @@ import pandas as pd
 import json
 import ast
 import numpy as np
+from matplotlib import pyplot as plt
 
 
-
-def safe_literal_eval(s):
-    try:
-        # Only attempt to evaluate strings that look like lists
-        if isinstance(s, str) and s.startswith('[') and s.endswith(']'):
-            return ast.literal_eval(s)
-        # Return an empty list for empty strings or strings that don't look like lists
-        return []
-    except ValueError:
-        # In case of any other unexpected ValueError, return an empty list as well
-        return []
-
-def safe_json_loads(string):
-    try:
-        return json.loads(string)
-    except ValueError as e:
-        print(f"Error loading JSON string: {e}")
-        return {}
-
-def create_specs_csv():
-
-    filepath='full_dataset/all_specifications.csv'
+def add_brand(df_cars):
+    df = df_cars.copy()
+    brands = ['AMC','Alfa Romeo', 'Alpina','Ariel','Aston Martin','Audi','Austin','BMW','BYD','Bentley','Buddy','Buick',
+              'Cadillac','Chevrolet','Chrysler','Citroen','Cupra','DAF','DS','Dacia','Daewoo','Daihatsu','De Tomaso','Dodge',
+              'Ferrari', 'Fiat', 'Fisker', 'Ford','GMC','Goupil','HiPhi','Honda', 'Hongqi','Hummer','Hyundai','Infiniti','Isuzu','Iveco',
+              'JAC','Jaguar','Jeep','KGM','Kia','Lamborghini','Lancia','Land Rover','Lexus','Lincoln','Lotus',
+              'MAN', 'MG','MINI', 'Maserati','Maxus','Maybach','Mazda','McLaren','Mercedes-Benz', 'Mercury',
+              'Mitsubishi','Morgan','Morris','NIO','Nissan','Oldsmobile','Opel','Packard','Peugeot','Plymouth','Piaggio','Polestar','Pontiac','Porsche',
+              'RAM','Radical','Renault','Rover','Rolls Royce','Saab','Seat','Seres','Skoda','Smart','Ssangyong','Subaru','Suzuki',
+              'Tesla','TVR','Tazzari','Toyota','Triumph','Think', 'Volvo','VOYAH','Volkswagen','XPeng']
     
-    specifications  = create_specifications_df(filepath)
-    specifications.to_csv('data_processing/specifications_ready.csv')
+    for idx,row in df.iterrows():
+        lowercase = row['car_name'].lower()
+        brand_name = 'unknown'
+        for brand in brands:
+            if brand.lower() in lowercase:
+                brand_name = brand
+                break
+        df.at[idx, 'brand'] = brand_name
+    notknown = df[df['brand']=='unknown']
+    print(notknown)
+    print(len(notknown))
+    return df
 
-def create_specifications_df(filepath):
+def clean_cars(df):
+    df_cars = df.copy() 
+    missing_values =  df_cars.isnull().sum()
+    price_information = df_cars['Price'].describe()       
+    df_cars.drop(df_cars.loc[df_cars['Price']>=5000000].index,inplace=True)
+    return df_cars, price_information
+def synchronize_dataframes(df_cars, df_utstyr, df_specs):
+
+    # Extract the set of 'Finnkode' values that are present in base
+    valid_finnkode_cars = set(df_cars['Finnkode'])
+    valid_finnkode_utstyr = set(df_utstyr['Finnkode'])
+    valid_finnkode_specs = set(df_specs['Finnkode'])
+
+    valid_finnkode = valid_finnkode_cars.intersection(valid_finnkode_utstyr,valid_finnkode_specs)
     
-    df_spesifikasjoner = pd.read_csv(filepath)
-    all_keys = set()
-
-    for row in df_spesifikasjoner['Specifications']:
-        spec_dict = json.loads(row)
-        all_keys.update(spec_dict.keys())
-    
-    for key in all_keys:
-        df_spesifikasjoner[key] = df_spesifikasjoner['Specifications'].apply(lambda x: json.loads(x).get(key, pd.NA))
-
-
-    df_specs = df_spesifikasjoner.copy()
-    df_specs = df_specs.drop(['Specifications'], axis=1)
-    
-    return df_specs
-
-def clean_specifications(df):
-    df_specs = df.copy()
-       
-    #Drop units in columns:
-    cols_drop_units = ['Kilometer', 'Vekt (kg)', 'Maksimal tilhengervekt (kg)', 'CO2-utslipp (g/km)','Omregistrering (kr)']
-    for column in cols_drop_units:
-        df_specs[column] = pd.to_numeric(df_specs[column].astype(str).str.replace(r'\D+', '', regex=True), errors='coerce')
-    
-    #--Cleaning Kilometer --
-    #remove string from 'Kilometer'
-    print('before',df_specs['Kilometer'].isna().sum())
-    #df_specs['Kilometer'] = pd.to_numeric(df_specs['Kilometer'].str.replace(r'\D+', '', regex=True), errors='coerce')
-    df_specs['Kilometer'] = df_specs['Kilometer'].fillna(-1)
-    df_specs['Kilometer'] = df_specs['Kilometer'].astype('float32')
-        
-    df_specs['Finnkode'] = df_specs['Finnkode'].astype('int32')
-    #df_specs['Omregistrering'] = pd.to_numeric(df_specs['Omregistrering (kr)'].str.replace(r'\D+', '', regex=True), errors='coerce')
-    df_specs['Omregistrering (kr)'] = df_specs['Omregistrering (kr)'].fillna(-1)
-    df_specs['Omregistrering (kr)'] = df_specs['Omregistrering (kr)'].astype('float32')
-    #convert columns to int dtype:
-    
-
-    df_specs['1. gang registrert'] =df_specs['1. gang registrert'].replace('01.01.0001', None)
-    columns_to_drop = ['Bilen står i', 'Chassis nr. (VIN)', 'Årsavgift', 'Salgsform']
-    cleaned_specs = df_specs.drop(columns=columns_to_drop, axis=1)
-    print('after', cleaned_specs['Kilometer'].isna().sum())
-
-
-    return cleaned_specs
-
-def clean_dtypes(df_specs):
-    columns_to_int = ['Modellår', 'Antall eiere', 'Antall dører','Antall seter']
-    for column in columns_to_int:
-        df_specs[column] = pd.to_numeric(df_specs[column], errors='coerce').fillna(-1).astype(int)
-    
-    return df_specs
-def synchronize_dataframes(df_cars, cleaned_specs):
-    # Ensure 'Finnkode' in cleaned_specs is the basis for synchronization
-    # No need to clean df_cars as mentioned
-    
-    # Extract the set of 'Finnkode' values that are present in the cleaned specifications
-    valid_finnkode = set(cleaned_specs['Finnkode'])
-
-    # Filter the cars DataFrame to include only rows with 'Finnkode' found in the cleaned specifications
     df_cars_synced = df_cars[df_cars['Finnkode'].isin(valid_finnkode)].copy()
+    df_utstyr_synced = df_utstyr[df_utstyr['Finnkode'].isin(valid_finnkode)].copy()
+    df_specs_synced = df_specs[df_specs['Finnkode'].isin(valid_finnkode)].copy()
     
-    # The cleaned_specs DataFrame is already cleaned and does not require further filtering based on df_cars
-    cleaned_specs_synced = cleaned_specs.copy()
-    
-    # Return the synchronized DataFrames
-    return df_cars_synced, cleaned_specs_synced
-
+    return df_cars_synced, df_utstyr_synced, df_specs_synced
 
 if __name__ == "__main__":
-    #Read and create specifications df:
-    #create_specs_csv()
 
     df_cars = pd.read_csv('full_dataset/all_cars.csv')
-
-    create_specs_csv()
-    #rename columns for cleaning purposes
-    df_specs = pd.read_csv('data_processing/specifications_ready.csv')
-    df_specs.rename(columns={"Maksimal tilhengervekt":"Maksimal tilhengervekt (kg)", "Vekt":"Vekt (kg)",
-                                    "CO2-utslipp":"CO2-utslipp (g/km)","Omregistrering":"Omregistrering (kr)"},inplace=True)
-    
-    num_missing_per_row = df_specs.isna().sum(axis=1)
-    
-    # Identify rows with 50% or more missing values
+    #df_specifications = pd.read_csv('full_dataset/all_specs.csv')
+    #df_equipment = pd.read_csv('full_dataset/all_equipments.csv')
+    pd.options.display.float_format = '{:.2f}'.format  
+    df_cars_processed, price_info = clean_cars(df_cars)
+    print(f"Car Price Information: {price_info}")
+    print("after", df_cars_processed['Price'].describe())
     '''
-    rows_with_many_missing = num_missing_per_row >= 18
+    #optionally: add brand name
+    df_car = clean_cars(df_cars)
+    df_car.rename(columns={"car_name": "name"},inplace=True)
+    '''    
     
-    # Drop these rows
-    specifications_reduced = df_specs[~rows_with_many_missing]
-    
-    print(f"Original number of rows: {len(df_specs)}")
-    print(f"Number of rows after dropping rows with 9 or more missing values: {len(specifications_reduced)}") #specs_copy = specifications.copy()
-   
-    cleaned_specifications = clean_specifications(specifications_reduced)
+    df_cars_synced, df_specs_synced, df_equipment_synced = synchronize_dataframes(df_cars, df_equipment, df_specifications)
 
-    #cleaned_specifications.to_csv('data/cleaned_new.csv')
-
-    #synchronized cleaned specifications with cars:
-    df_cars_synced, cleaned_specs_synced = synchronize_dataframes(df_cars=df_cars, cleaned_specs=cleaned_specifications)
-    '''
-    '''
-    print(f"Cars after sync: \n {len(df_cars_synced)} \n Specifications after sync: \n {len(cleaned_specs_synced)}")
-    missing_values_car = df_cars_synced.isna().sum(axis=1)
-    print(f"cars miss: \n {missing_values_car} \n")
-    missing_values_specifications = cleaned_specs_synced.isna().sum(axis=1)
-    print(f"specs miss: \n {missing_values_specifications} \n")
-
-    print(cleaned_specs_synced.isna().sum().sum())
-    '''
-
-'''  
-    #Rows containing all information
-    #complete_carspecifications = specifications_clean.notna().all(axis=1).sum()
-    #print(f"Cars containing all specifications: \n {complete_carspecifications} \n")
-
-    
-    #print(complete_cars)
-    #df_cars_synced, full_specs_synced = synchronize_dataframes(df_cars, car_specs_filled)
- 
-    #df_cars_synced.to_csv('../data_processing/cleaned_cars_40k.csv')
-    #full_specs_synced.to_csv('../data_processing/cleaned_specifications_40k.csv')
-    '''
+    df_cars_synced.to_csv('../data/synced_cars.csv')
+    df_specs_synced.to_csv('../data/synced_specifications.csv')
+    df_equipment_synced.to_csv('../data/synced_equipment.csv')

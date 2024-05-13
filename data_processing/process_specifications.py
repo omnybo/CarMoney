@@ -31,7 +31,7 @@ def create_specs_csv():
     specifications.to_csv('data_processing/specifications_ready.csv')
 
 def create_specifications_df(filepath):
-    
+    #Create dataframe, set dictionary keys as columns
     df_spesifikasjoner = pd.read_csv(filepath)
     all_keys = set()
 
@@ -51,17 +51,17 @@ def create_specifications_df(filepath):
 def correct_dtypes(df, cols_drop_units):
     df_specs = df.copy()
 
-    # Check each column before attempting to clean and convert
+    #drop units in across columns
     for column in cols_drop_units:
         if column in df.columns:
             print(f"Data for {column} before cleaning {df_specs[column].unique()[:5]}  ")  # Display first 5 unique cleaned values
 
-            # Assuming decimals are not important except for specific fields like 'Vekt'
+            #Assuming decimals are not important except for specific fields like 'Vekt'
             regex_pattern = r'[^\d.]'
             df_specs[column] = pd.to_numeric(df_specs[column].astype(str).str.replace(regex_pattern, '', regex=True), errors='coerce') 
             print(f"Cleaned data for {column}: {df_specs[column].unique()[:5]}")  # Display first 5 unique cleaned values
    
-    # Convert to integer with NaN handling
+    #Convert columns to dtype integer
     columns_to_int = ['Antall eiere', 'Antall dører', 'Antall seter']
     for column in columns_to_int:
         if column in df_specs.columns:
@@ -75,7 +75,7 @@ def clean_specifications(df, thresh_decimal):
     missing_per_row = df_specs.isna().sum(axis=1)
     missing_per_col = df_specs.isna().sum(axis=0)
     print('Missing Before:\n',missing_per_col,'\n')
-    #drop rows missing more than x values
+    #drop rows missing more than x percent values
     rows_to_drop = missing_per_row >= len(df_specs.columns.isna())*thresh_decimal
     print(f"Number of rows: {df_specs.isna().sum()}")
     df_specs = df_specs[~rows_to_drop]
@@ -103,22 +103,8 @@ def fill_missing_values(df):
 
     df_filled[obj_col_to_fill] = df_filled[obj_col_to_fill].fillna('zero')
     
-    #condition = (df_filled['CO2-utslipp (g/km)'].isna()) & (df_filled['Drivstoff'] == 'Elektrisitet')
-    #df_filled.loc[condition, 'CO2-utslipp (g/km)'] = 0
+
     return df_filled
-def synchronize_dataframes(df1, df2):
-
-    #Extract set of finnkode in the first dataframe
-    valid_finnkode = set(df2['Finnkode'])
-
-    # Retrieve rows with 'Finnkode' found in second dataframe
-    df1_synced = df1[df1['Finnkode'].isin(valid_finnkode)].copy()
-    
-    # The cleaned_specs DataFrame is already cleaned and does not require further filtering based on df_cars
-    df2_synced = df2.copy()
-    
-    # Return the synchronized DataFrames
-    return df1_synced, df2_synced
 
 def process_num_data(df):
     float64_data = df.select_dtypes(include=['float64'])

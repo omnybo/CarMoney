@@ -289,6 +289,10 @@ if __name__ == "__main__":
                             
                         if not price:
                             price = car_scraper.extract_price_from_smidig_bilhandel()
+                        if not price:
+                            print(f"Skipping car with finnkode: {finnkode} due to missing price.")
+                            car_scraper.close()
+                            continue
                         specifications = car_scraper.extract_car_specs()
                         car_name = car_scraper.extract_model_name()
                         car_specs_list = car_scraper.extract_specs_list()
